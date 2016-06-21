@@ -14,4 +14,5 @@ Currently i'm only testing on Win10 (64Bit) with Python 2.7 (3Bit).
 
 ## Usage
 
-In your repository dir: `python -m pygcgen.run`
+In your repository dir: `pygcgen` or `python -m pygcgen`.
+From elsewhere: `pygcgen -u skywinder -p ActionSheetPicker-3.0` or `python -m pygcgen -u skywinder -p ActionSheetPicker-3.0`.
