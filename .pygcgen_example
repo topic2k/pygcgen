@@ -1,0 +1,135 @@
+# This is an example options file pygcgen.
+# One option per line.
+# Lines starting with # or ; are treated as comments and are ignored
+; This is also a comment.
+
+# To make more than 50 requests per hour, a GitHub token is required.
+# If you don't have/provide one, pygcgen will exit.
+# You can generate a token at:
+# https://github.com/settings/tokens/new
+;token=
+
+# Max number of issues to fetch from GitHub. Default is unlimited.
+;max-issues=500
+
+# If you place the option file in the root dir of your git repository
+# and name it '.pygcgen', you can run the changelog generation with
+# a simple call of 'python -m pygcgen.run' from your repsoitory root dir.
+# Or you can tell pygcgen for what project the changelog should be generated:
+user=skywinder
+project=ActionSheetPicker-3.0
+;project=changelog_test
+
+# Output file. Default is CHANGELOG.md
+output=CHANGELOG-Testrun.md
+
+# For boolean options it's enough to write them on a line:
+verbose
+# or you can add True, Yes, 1 to it. All other values will result in false
+# as value for the option.
+# Include unreleased closed issues in log.
+with-unreleased=True
+
+# Changelog will be filled only between specified tags (including those).
+;between-tags=2.1.0,2.0.5
+# You can use this to generate the log for a specific tag (version).
+;between-tags=2.0.4,2.0.4
+
+# Change log will exclude specified tags.
+;exclude-tags=v0.1,0.1,compilerBug
+
+# Apply a regular expression on tag names so that they can be excluded.
+;exclude-tags-regex=^(v?0\..*|compilerBug)$
+
+# Change log will start after specified tag.
+;since-tag=1.0.2
+
+# Change log will end before specified tag.
+;due-tag=1.2.0
+
+# The date format to use in the changelog. Default is: %Y-%m-%d"
+;date-format=%Y-%m-%d
+
+# Optional base file to append to generated changelog.
+;base=HISTORY.md
+
+# Generate log from unreleased closed issues only.
+;unreleased-only
+
+# Add the date of generation to unreleased label.
+unreleased-with-date
+
+# Don't include closed issues in changelog.
+;no-issues
+
+# Don't include closed issues that don't have labels in changelog.
+;no-issues-wo-labels
+
+# Don't include pull requests that don't have labels in changelog.
+;no-pr-wo-labels
+
+# Don't include pull-requests in changelog.
+;no-pull-requests
+
+# Don't use milestone to detect when issue was resolved.
+;no-filter-by-milestone
+
+# Don't add author of pull-request in the end.
+;no-author
+
+# Don't include compare link (Full Changelog) between
+# older version and newer version.
+;no-compare-link
+
+#Setup custom header label.
+;header-label=# Changelog generated with [pygcgen](http://www.github.com/topic2k/pygcgen)
+
+# Label for unreleased closed issues.
+;unreleased-label=Unreleased
+
+# Setup custom label for bug-fixes section.
+;bugs-label=**Fixed bugs:**
+
+# Setup custom label for enhancements section.
+;enhancement-label=**Implemented enhancements:**
+
+# Setup custom label for closed-issues section.
+;issues-label=**Closed issues:**
+
+# Setup custom label for pull requests section.
+;pr-label=**Merged pull requests:**
+
+# Add YAML front matter. Formatted as JSON because it's easier to
+# add on the command line.
+;front-matter=
+
+# Only issues with the specified labels will be included in the changelog.
+# Seperate multiple labels with a ',' (comma).
+;include-labels=my_label,finally fixed,another-label
+
+# Issues with the specified labels will always be excluded from changelog.
+;exclude-labels=duplicate,Duplicate,question,Question,invalid,Invalid,wontfix,Wontfix
+
+# Issues with the specified labels will always be
+# added to 'Fixed bugs' section.
+;bug-labels=bug,Bug
+
+# Issues with the specified labels will always be
+# added to 'Implemented enhancements' section.
+;enhancement-labels=enhancement,Enhancement
+
+# he URL to point to for release links, in print format
+# (with the tag as variable).
+;release-url=http://my.server.net/releases/{0}
+
+# The enterprise endpoint to use for your Github API.
+;github-api=http://api.my.server.net
+
+# Create simple list from issues and pull requests.
+;simple-list
+
+# Put the unreleased changes in the specified release number.
+;future-release=99.99.99
+
+# Limit pull requests to the release branch, such as master or release.
+;release-branch=master
