@@ -23,7 +23,7 @@ setup(
     license = 'The MIT License (MIT)',
     packages =  ['pygcgen'],
     setup_requires = ['setuptools', 'setuptools_scm',],
-    install_requires = ["agithub",],
+    install_requires = ["agithub", "python-dateutil"],
     dependency_links = [r"https://github.com/jpaugh/agithub/archive/master.zip",],
     entry_points = {
         'console_scripts': ['pygcgen = pygcgen.__main__:run',],

@@ -12,7 +12,6 @@ import datetime
 
 from .fetcher import Fetcher
 from .reader import read_changelog
-from .helper import PrintYellow
 from .pygcgen_exceptions import ChangelogGeneratorError
 
 
@@ -630,7 +629,6 @@ class Generator:
 
         if not self.options.include_labels:
             return copy.deepcopy(issues)
-        PrintYellow("IS THIS RIGHT? (3)")
         filtered_issues = []
         include_labels = set(self.options.include_labels)
         for issue in issues:
