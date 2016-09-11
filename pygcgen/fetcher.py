@@ -234,7 +234,6 @@ class Fetcher:
         for i in range(0, (cnt / MAX_SIMULTANEOUS_REQUESTS) + 1):
             for j in range(MAX_SIMULTANEOUS_REQUESTS):
                 idx = i * MAX_SIMULTANEOUS_REQUESTS + j
-                print("i:",i, "  j:", j, "  cnt:", cnt, "  idx:", idx)
                 if idx == cnt:
                     break
                 t = threading.Thread(target=worker, args=(issues[idx],))
