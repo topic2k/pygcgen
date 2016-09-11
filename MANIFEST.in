@@ -1,0 +1,10 @@
+# Include the license file
+# recursive-exclude . *.pyc
+#exclude .gitignore
+#include LICENSE
+#include README.md
+#include CHANGELOG.md
+#include .pygcgen_example
+
+# Include the data files
+# recursive-include data *

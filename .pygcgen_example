@@ -77,6 +77,13 @@ unreleased-with-date
 # Don't add author of pull-request in the end.
 ;no-author
 
+# Instead of using markdown links use github tags to link the author name.
+# example:
+#   - fancy PR description (#37) ([topic2k](http://github.com/topic2k))
+# with option given:
+#   - fancy PR description (#37) (@topic2k)
+;--author-link-as-tag
+
 # Don't include compare link (Full Changelog) between
 # older version and newer version.
 ;no-compare-link

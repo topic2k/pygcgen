@@ -1,40 +1,38 @@
 # -*- coding: utf-8 -*-
 
-
 from __future__ import print_function
-import sys
 import argparse
-import subprocess
-import re
 import os
-
+import re
+import subprocess
+import sys
 
 from .optionsfile_parser import OptionsFileParser
-from .version import version
+from .version import __version__
 
 
 DEFAULT_OPTIONS = {
-    "date_format": "%Y-%m-%d",
-    "output": "CHANGELOG.md",
-    #"base": "HISTORY.md",
-    "enhancement_labels": ["enhancement", "Enhancement"],
     "bug_labels": ["bug", "Bug"],
+    "bug_prefix": "**Fixed bugs:**",
+    "date_format": "%Y-%m-%d",
+    "enhancement_labels": ["enhancement", "Enhancement"],
+    "enhancement_prefix": "**Implemented enhancements:**",
     "exclude_labels": [
         "duplicate","Duplicate",
         "question", "Question",
         "invalid", "Invalid",
         "wontfix", "Wontfix",
     ],
-    "max_issues": sys.maxint,
-    "header": "# Change Log",
-    "unreleased_label": "Unreleased",
-    "merge_prefix": "**Merged pull requests:**",
-    "issue_prefix": "**Closed issues:**",
-    "bug_prefix": "**Fixed bugs:**",
-    "enhancement_prefix": "**Implemented enhancements:**",
+    "git_remote": "origin",
     "github_api": "api.github.com",
     "github_site": "github.com",
-    "git_remote": "origin",
+    "header": "# Change Log",
+    "issue_prefix": "**Closed issues:**",
+    "max_issues": sys.maxsize,
+    "merge_prefix": "**Merged pull requests:**",
+    "output": "CHANGELOG.md",
+    "unreleased_label": "Unreleased",
+    #"base": "HISTORY.md",
 }
 
 
@@ -154,7 +152,7 @@ class OptionsParser:
             help="Don't add author of pull-request in the end."
         )
         parser.add_argument(
-            "--usernames-as-github-logins",
+            "--author-link-as-tag",
             action='store_true', dest="username_as_tag",
             help="Use GitHub tags instead of Markdown links for the "
                  "author of an issue or pull-request."
@@ -284,7 +282,7 @@ class OptionsParser:
         )
         parser.add_argument(
             "--version",
-            action='version', version="%(prog)s {0}".format(version),
+            action='version', version="%(prog)s {0}".format(__version__),
             help="Print version number"
         )
         opts = parser.parse_args(options)

@@ -26,6 +26,10 @@ class ChangelogGenerator:
         'ChangelogGeneratorError' Is thrown when one
         of the specified tags was not found in list of tags.
         '''
+        if not self.options.project or not self.options.user:
+            print("Project and/or user missing. For help run:\n  pygcgen --help")
+            return
+
         log = self.generator.compound_changelog()
 
         def checkname(filename):
