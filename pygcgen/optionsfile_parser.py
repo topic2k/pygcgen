@@ -36,6 +36,7 @@ BOOL_KEYS = {
     "no_filter_by_milestone": False,
     "no_issues": False,
     "no_issues_wo_labels": False,
+    "no_overwrite": False,
     "no_pr_wo_labels": False,
     "no_pull_requests": False,
     "simple_list": True,
