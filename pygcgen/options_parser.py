@@ -25,7 +25,7 @@ DEFAULT_OPTIONS = {
         "invalid", "Invalid",
         "wontfix", "Wontfix",
     ],
-    "max_issues": sys.maxint,
+    "max_issues": sys.maxsize,
     "header": "# Change Log",
     "unreleased_label": "Unreleased",
     "merge_prefix": "**Merged pull requests:**",

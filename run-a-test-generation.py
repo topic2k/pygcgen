@@ -4,11 +4,13 @@
 from pygcgen import ChangelogGenerator
 from pygcgen.__main__ import run_gui
 
-run_gui()
+# run_gui()
+# exit()
 
-exit()
-
-options = ["--options-file", ".pygcgen_example"]
+options = [
+    "-v",
+    "--with-unreleased",
+]
 
 chagen = ChangelogGenerator(options)
 chagen.run()
