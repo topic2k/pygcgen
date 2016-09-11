@@ -154,6 +154,12 @@ class OptionsParser:
             help="Don't add author of pull-request in the end."
         )
         parser.add_argument(
+            "--usernames-as-github-logins",
+            action='store_true', dest="username_as_tag",
+            help="Use GitHub tags instead of Markdown links for the "
+                 "author of an issue or pull-request."
+        )
+        parser.add_argument(
             "--with-unreleased",
             action='store_true', dest="with_unreleased",
             help="Include unreleased closed issues in log."
@@ -287,13 +293,17 @@ class OptionsParser:
         if os.path.exists(opts.options_file):
             OptionsFileParser(options=opts).parse()
         if not opts.user or not opts.project:
-            self.user_and_project_from_git(opts)
+            self.fetch_user_and_project(opts)
         return opts
 
-    def user_and_project_from_git(self, options):
-        options.user, options.project = self.detect_user_and_project(options)
+    def fetch_user_and_project(self, options):
+        user, project = self.user_and_project_from_git(options)
+        if not options.user:
+            options.user = user
+        if not options.project:
+            options.project = project
 
-    def detect_user_and_project(self, options, arg0=None, arg1=None):
+    def user_and_project_from_git(self, options, arg0=None, arg1=None):
         ''' Detects user and project from git. '''
         user, project = self.user_project_from_option(options, arg0, arg1)
         if user and project:

@@ -11,7 +11,8 @@ from pygcgen_exceptions import GithubApiError
 
 
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
-PER_PAGE_NUMBER = 30
+PER_PAGE_NUMBER = 100
+MAX_SIMULTANEOUS_REQUESTS = 25
 CHANGELOG_GITHUB_TOKEN = "CHANGELOG_GITHUB_TOKEN"
 GH_RATE_LIMIT_EXCEEDED_MSG = \
     "GitHub API rate limit exceeded, change log may be missing some issues. " \
@@ -82,7 +83,8 @@ class Fetcher:
         while page > 0:
             if verbose:
                 print(".", end="")
-            rc, data = gh.repos[user][repo].tags.get(page=page, per_page=100)
+            rc, data = gh.repos[user][repo].tags.get(
+                page=page, per_page=PER_PAGE_NUMBER)
             if rc == 200:
                 tags.extend(data)
             else:
@@ -120,7 +122,8 @@ class Fetcher:
             if verbose:
                 print(".", end="")
             rc, data = gh.repos[user][repo].issues.get(
-                page=page, per_page=100, state='closed', filter='all'
+                page=page, per_page=PER_PAGE_NUMBER,
+                state='closed', filter='all'
             )
             if rc == 200:
                 issues.extend(data)
@@ -165,12 +168,12 @@ class Fetcher:
 
             if self.options.release_branch:
                 rc, data = gh.repos[user][repo].pulls.get(
-                    page=page, per_page=100, state='closed',
+                    page=page, per_page=PER_PAGE_NUMBER, state='closed',
                     base=self.options.release_branch
                 )
             else:
                 rc, data = gh.repos[user][repo].pulls.get(
-                    page=page, per_page=100, state='closed',
+                    page=page, per_page=PER_PAGE_NUMBER, state='closed',
                 )
 
             if rc == 200:
@@ -217,7 +220,8 @@ class Fetcher:
             issue['events'] = []
             while page > 0:
                 rc, data = gh.repos[user][repo].issues[
-                    issue['number']].events.get(page=page, per_page=100)
+                    issue['number']].events.get(
+                    page=page, per_page=PER_PAGE_NUMBER)
                 if rc == 200:
                     issue['events'].extend(data)
                     self.events_cnt += len(data)
@@ -225,12 +229,12 @@ class Fetcher:
                     self.check_returncode(rc, data, gh.getheaders())
                 page = NextPage(gh)
 
-        max_threads = 50
         threads = []
         cnt = len(issues)
-        for i in range(0, (cnt / max_threads) + 1):
-            for j in range(max_threads):
-                idx = i * 50 + j
+        for i in range(0, (cnt / MAX_SIMULTANEOUS_REQUESTS) + 1):
+            for j in range(MAX_SIMULTANEOUS_REQUESTS):
+                idx = i * MAX_SIMULTANEOUS_REQUESTS + j
+                print("i:",i, "  j:", j, "  cnt:", cnt, "  idx:", idx)
                 if idx == cnt:
                     break
                 t = threading.Thread(target=worker, args=(issues[idx],))
@@ -238,7 +242,7 @@ class Fetcher:
                 t.start()
                 if verbose:
                     print(".", end="")
-                    if not idx % 30:
+                    if not idx % PER_PAGE_NUMBER:
                         print("")
             for t in threads:
                 t.join()

@@ -4,44 +4,46 @@
 FILENAME = ".pygcgen"
 KNOWN_INTEGER_KEYS = ["max_issues"]
 KNOWN_ARRAY_KEYS = [ # TODO: umbauen auf dict(key: cnt) # cnt=Anzahl:-1=egal
-    "exclude_labels",
-    "include_labels",
+    "between_tags",
     "bug_labels",
     "enhancement_labels",
-    "between_tags",
+    "exclude_labels",
     "exclude_tags"
+    "include_labels",
 ]
 IRREGULAR_OPTIONS = {
     "bugs_label": "bug_prefix",
     "enhancement_label": "enhancement_prefix",
-    "issues_label": "issue_prefix",
-    "header_label": "header",
     "front_matter": "frontmatter",
-    "pr_label": "merge_prefix",
+    "github_api": "github_endpoint",
+    "header_label": "header",
+    "issues_label": "issue_prefix",
+    "no_author": "author",
+    "no_compare_link": "compare_link",
+    "no_filter_by_milestone": "filter_issues_by_milestone",
     "no_issues": "issues",
     "no_issues_wo_labels": "add_issues_wo_labels",
     "no_pr_wo_labels": "add_pr_wo_labels",
     "no_pull_requests": "include_pull_request",
-    "no_filter_by_milestone": "filter_issues_by_milestone",
-    "no_author": "author",
-    "no_compare_link": "compare_link",
-    "github_api": "github_endpoint",
-    "origin": "git_remote"
+    "origin": "git_remote",
+    "pr_label": "merge_prefix",
+    "usernames_as_github_logins": "username_as_tag",
 }
 BOOL_KEYS = {
+    "debug": True,
+    "no_author": False,
+    "no_compare_link": False,
+    "no_filter_by_milestone": False,
     "no_issues": False,
     "no_issues_wo_labels": False,
     "no_pr_wo_labels": False,
     "no_pull_requests": False,
-    "no_filter_by_milestone": False,
-    "no_author": False,
-    "no_compare_link": False,
-    "with_unreleased": True,
+    "simple_list": True,
     "unreleased_only": True,
     "unreleased_with_date": True,
-    "simple_list": True,
+    "username_as_tag": False,
     "verbose": True,
-    "debug": True,
+    "with_unreleased": True,
 }
 
 
