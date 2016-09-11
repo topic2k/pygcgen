@@ -154,6 +154,12 @@ class OptionsParser:
             help="Don't add author of pull-request in the end."
         )
         parser.add_argument(
+            "--usernames-as-github-logins",
+            action='store_true', dest="username_as_tag",
+            help="Use GitHub tags instead of Markdown links for the "
+                 "author of an issue or pull-request."
+        )
+        parser.add_argument(
             "--with-unreleased",
             action='store_true', dest="with_unreleased",
             help="Include unreleased closed issues in log."

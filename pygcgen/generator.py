@@ -367,6 +367,7 @@ class Generator:
         Parse issue and generate single line formatted issue line.
         Example output:
         - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) ([skywinder](https://github.com/skywinder))
+        - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) (@skywinder)
 
         @param [Hash] issue Fetched issue from GitHub
         @return [String] Markdown-formatted single issue
@@ -382,16 +383,23 @@ class Generator:
             print(issue["number"])
             print(issue["html_url"])
             title_with_number = "ERROR ERROR ERROR"
+        return self.issue_line_with_user(title_with_number, issue)
 
-        if issue.get("pull_request"):
-            if self.options.author:
-                if not issue.get("user"):
-                    title_with_number += u" (Null user)"
-                else:
-                    title_with_number += u" ([{0}]({1}))".format(
-                        issue["user"]["login"], issue["user"]["html_url"]
-                    )
-        return title_with_number
+    def issue_line_with_user(self, line, issue):
+        if not issue.get("pull_request") or not self.options.author:
+            return line
+
+        if not issue.get("user"):
+            line += u" (Null user)"
+        elif self.options.username_as_tag:
+            line += u" (@{0})".format(
+                issue["user"]["login"]
+            )
+        else:
+            line += u" ([{0}]({1}))".format(
+                issue["user"]["login"], issue["user"]["html_url"]
+            )
+        return line
 
     def create_log_for_tag(self, pull_requests, issues,
                            newer_tag, older_tag_name=None):
