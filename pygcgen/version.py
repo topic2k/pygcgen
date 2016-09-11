@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__ = "0.1.0b2"
+__version__ = "0.1.1"
 
 __title__ = "pygcgen"
 __summary__ = "Automatic changelog generation"

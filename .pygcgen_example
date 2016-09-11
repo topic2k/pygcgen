@@ -23,6 +23,9 @@ project=ActionSheetPicker-3.0
 # Output file. Default is CHANGELOG.md
 output=CHANGELOG-Testrun.md
 
+# Don't overwrite the output file if it exists (add a number instead)
+;no-overwrite
+
 # For boolean options it's enough to write them on a line:
 verbose
 # or you can add True, Yes, 1 to it. All other values will result in false
@@ -125,7 +128,7 @@ unreleased-with-date
 # added to 'Implemented enhancements' section.
 ;enhancement-labels=enhancement,Enhancement
 
-# he URL to point to for release links, in print format
+# The URL to point to for release links, in print format
 # (with the tag as variable).
 ;release-url=http://my.server.net/releases/{0}
 

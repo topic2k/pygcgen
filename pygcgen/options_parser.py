@@ -76,6 +76,12 @@ class OptionsParser:
             help="Output file. Default is CHANGELOG.md"
         )
         parser.add_argument(
+            "--no-overwrite",
+            action='store_true',
+            help="Don't overwrite the output file if it exists "
+                 "(add a number instead)."
+        )
+        parser.add_argument(
             "-b", "--base", metavar="FILE",
             #default=DEFAULT_OPTIONS["base"],
             help="Optional base file to append to generated changelog."

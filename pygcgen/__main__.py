@@ -49,7 +49,10 @@ class ChangelogGenerator:
                                                  len(filename) > 1 else "")
             return checkname(filename)
 
-        out = checkname(self.options.output)
+        if self.options.no_overwrite:
+            out = checkname(self.options.output)
+        else:
+            out = self.options.output
 
         with open(out, "w") as fh:
             fh.write(log.encode("utf8"))
