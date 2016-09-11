@@ -105,7 +105,7 @@ class Generator:
             self.find_closed_date_by_commit(issue)
             if not issue.get('actual_date', False):
                 # TODO: don't remove it ???
-                print("\nHELP ME! is it correct to remove #{0} {1}".format(issue["number"], issue["title"]))
+                print("\nHELP ME! is it correct to skip #{0} {1}".format(issue["number"], issue["title"]))
                 issues.remove(issue)
 
         if self.options.verbose:
