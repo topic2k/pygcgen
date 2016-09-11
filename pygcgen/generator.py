@@ -280,9 +280,7 @@ class Generator:
 
         older_tag_name = older_tag["name"] if older_tag else self.detect_since_tag()
 
-        if not newer_tag and \
-            not filtered_issues and \
-            not filtered_pull_requests:
+        if not filtered_issues and not filtered_pull_requests:
             # do not generate an unreleased section if it would be empty
             return ""
         return self.create_log_for_tag(
