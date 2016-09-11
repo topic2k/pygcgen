@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- Add option to keep output file if it exists [\#5](https://github.com/topic2k/pygcgen/pull/5) ([topic2k](https://github.com/topic2k))
 - Prepare for releasing on PyPi. [\#4](https://github.com/topic2k/pygcgen/pull/4) ([topic2k](https://github.com/topic2k))
 
 # [v0.1.0](https://github.com/topic2k/pygcgen/tree/v0.1.0) (2016-09-11)
