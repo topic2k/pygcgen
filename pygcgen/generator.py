@@ -15,6 +15,8 @@ from .reader import read_changelog
 from .pygcgen_exceptions import ChangelogGeneratorError
 
 
+REPO_CREATED_KEY = "repo_created_at"
+
 def dt_parser(timestring):
     result = dateutil_parser(str(timestring))
     return result
@@ -257,7 +259,7 @@ class Generator:
                         release_url=release_url,
                         time_string=time_string)
 
-        if self.options.compare_link and older_tag_link:
+        if self.options.compare_link and older_tag_link != REPO_CREATED_KEY:
             # Generate compare link
             log += u"[Full Changelog]({project_url}/compare/{older_tag_link}" \
                    u"...{newer_tag_link})\n\n".format(
@@ -416,7 +418,7 @@ class Generator:
         newer_tag_link, newer_tag_name, \
         newer_tag_time = self.detect_link_tag_time(newer_tag)
 
-        github_site = self.options.github_endpoint or "https://github.com"
+        github_site = "https://github.com" or self.options.github_endpoint
         project_url = "{0}/{1}/{2}".format(
             github_site, self.options.user, self.options.project)
 
@@ -792,11 +794,11 @@ class Generator:
             self.get_temp_tag_for_repo_creation()
 
     def get_temp_tag_for_repo_creation(self):
-        tag_date = self.tag_times_dict.get("repo_created_at", None)
+        tag_date = self.tag_times_dict.get(REPO_CREATED_KEY, None)
         if not tag_date:
             tag_name, tag_date = self.fetcher.get_first_event_date()
             self.tag_times_dict[tag_name] = dt_parser(tag_date)
-        return "repo_created_at"
+        return REPO_CREATED_KEY
 
     def get_filtered_tags(self, all_tags):
         '''
@@ -820,7 +822,7 @@ class Generator:
         '''
 
         tag = self.detect_since_tag()
-        if not tag or tag == "repo_created_at":
+        if not tag or tag == REPO_CREATED_KEY:
             return copy.deepcopy(all_tags)
 
         filtered_tags = []
