@@ -27,7 +27,7 @@ IRREGULAR_OPTIONS = {
     "no_pull_requests": "include_pull_request",
     "origin": "git_remote",
     "pr_label": "merge_prefix",
-    "usernames_as_github_logins": "username_as_tag",
+    "author_link_as_tag": "username_as_tag",
 }
 BOOL_KEYS = {
     "debug": True,
