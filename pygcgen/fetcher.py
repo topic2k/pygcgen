@@ -2,6 +2,10 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os
 import re
 import subprocess
@@ -24,7 +28,7 @@ NO_TOKEN_PROVIDED = \
     "50 requests to GitHub API per hour without token!"
 
 
-class Fetcher:
+class Fetcher(object):
     '''
     A Fetcher is responsible for all requests to GitHub and all basic
     manipulation with related data (such as filtering, validating, e.t.c).
@@ -232,7 +236,7 @@ class Fetcher:
 
         threads = []
         cnt = len(issues)
-        for i in range(0, (cnt / MAX_SIMULTANEOUS_REQUESTS) + 1):
+        for i in range(0, (old_div(cnt, MAX_SIMULTANEOUS_REQUESTS)) + 1):
             for j in range(MAX_SIMULTANEOUS_REQUESTS):
                 idx = i * MAX_SIMULTANEOUS_REQUESTS + j
                 if idx == cnt:

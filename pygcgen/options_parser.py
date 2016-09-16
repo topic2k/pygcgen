@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from builtins import object
 import argparse
 import os
 import re
@@ -36,7 +37,7 @@ DEFAULT_OPTIONS = {
 }
 
 
-class OptionsParser:
+class OptionsParser(object):
     def __init__(self, options=None):
         self.options = self.parse_options(options)
 

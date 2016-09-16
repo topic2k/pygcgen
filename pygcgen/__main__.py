@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from builtins import object
 import sys
 import os
 import re
@@ -9,7 +10,7 @@ from .options_parser import OptionsParser
 from .generator import Generator
 
 
-class ChangelogGenerator:
+class ChangelogGenerator(object):
     ''' Class responsible for whole change log generation cycle. '''
 
     def __init__(self, options=None):

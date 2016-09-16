@@ -2,6 +2,11 @@
 
 
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from dateutil.parser import parse as dateutil_parser
 import dateutil.tz
 
@@ -22,7 +27,7 @@ def dt_parser(timestring):
     return result
 
 
-class Generator:
+class Generator(object):
     ''' A Generator responsible for all logic, related with
     change log generation from ready-to-parse issues. '''
 
@@ -75,7 +80,7 @@ class Generator:
         threads = []
         max_threads = 50
         cnt = len(self.filtered_tags)
-        for i in range(0, (cnt / max_threads) + 1):
+        for i in range(0, (old_div(cnt, max_threads)) + 1):
             for j in range(max_threads):
                 idx = i * 50 + j
                 if idx == cnt:
@@ -189,7 +194,7 @@ class Generator:
         self.filtered_tags = tags_sorted
         self.fetch_issues_and_pr()
 
-        log = unicode(self.options.frontmatter) \
+        log = str(self.options.frontmatter) \
             if self.options.frontmatter else u""
         log += u"{0}\n\n".format(self.options.header)
 

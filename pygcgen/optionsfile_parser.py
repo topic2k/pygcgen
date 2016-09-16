@@ -1,3 +1,4 @@
+from builtins import object
 # -*- coding: utf-8 -*-
 
 
@@ -71,7 +72,7 @@ class ParserError(Exception):
 #    <tt>some_key=value</tt>.
 #
 
-class OptionsFileParser:
+class OptionsFileParser(object):
     def __init__(self, options):
         # @param options [Hash] options to be configured from file contents
         # @param file [nil,IO] configuration file handle, defaults to
