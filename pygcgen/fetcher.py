@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import re
 import subprocess
 import threading
 from agithub.GitHub import GitHub
 
-from pygcgen_exceptions import GithubApiError
+from .pygcgen_exceptions import GithubApiError
 
 
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
