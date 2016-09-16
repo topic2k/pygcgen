@@ -6,7 +6,6 @@ from __future__ import division
 from builtins import str
 from builtins import range
 from builtins import object
-from past.utils import old_div
 from dateutil.parser import parse as dateutil_parser
 import dateutil.tz
 
@@ -80,7 +79,7 @@ class Generator(object):
         threads = []
         max_threads = 50
         cnt = len(self.filtered_tags)
-        for i in range(0, (old_div(cnt, max_threads)) + 1):
+        for i in range(0, (cnt // max_threads) + 1):
             for j in range(max_threads):
                 idx = i * 50 + j
                 if idx == cnt:

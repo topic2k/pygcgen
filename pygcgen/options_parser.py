@@ -360,7 +360,7 @@ class OptionsParser(object):
         # try to find repo in format:
         # origin	git@github.com:skywinder/Github-Changelog-Generator.git (fetch)
         # git@github.com:skywinder/Github-Changelog-Generator.git
-        regex1 = r".*(?:[:/])(?P<user>(-|\w|\.)*)/(?P<project>(-|\w|\.)*)(\.git).*"
+        regex1 = br".*(?:[:/])(?P<user>(-|\w|\.)*)/(?P<project>(-|\w|\.)*)(\.git).*"
         match = re.match(regex1, remote)
         if match:
             return match.group("user"), match.group("project")

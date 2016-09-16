@@ -56,7 +56,10 @@ class ChangelogGenerator(object):
             out = self.options.output
 
         with open(out, "w") as fh:
-            fh.write(log.encode("utf8"))
+            try:
+                fh.write(log.encode("utf8"))
+            except TypeError:
+                fh.write(log)
         if self.options.verbose:
             print("Done!")
             print("Generated log placed in {0}/{1}".format(

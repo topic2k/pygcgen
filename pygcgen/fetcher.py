@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from __future__ import division
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import os
 import re
 import subprocess
@@ -37,6 +36,12 @@ class Fetcher(object):
     def __init__(self, options):
         self.options = options
         self.fetch_github_token()
+        if isinstance(self.options.user, bytes):
+            self.options.user = self.options.user.decode("utf8")
+        if isinstance(self.options.project, bytes):
+            self.options.project = self.options.project.decode("utf8")
+        if isinstance(self.options.token, bytes):
+            self.options.token= self.options.token.decode("utf8")
         if options.token:
             self.github = GitHub(
                 token=options.token,
@@ -236,7 +241,7 @@ class Fetcher(object):
 
         threads = []
         cnt = len(issues)
-        for i in range(0, (old_div(cnt, MAX_SIMULTANEOUS_REQUESTS)) + 1):
+        for i in range(0, (cnt // MAX_SIMULTANEOUS_REQUESTS) + 1):
             for j in range(MAX_SIMULTANEOUS_REQUESTS):
                 idx = i * MAX_SIMULTANEOUS_REQUESTS + j
                 if idx == cnt:
@@ -308,7 +313,7 @@ def NextPage(gh):
             sub = subparts[1].split('=')
             if sub[0].strip() == 'rel':
                 if sub[1] == '"next"':
-                    page = int(re.match(ur'.*page=(\d+).*',
+                    page = int(re.match(r'.*page=(\d+).*',
                                subparts[0],
                                re.IGNORECASE | re.DOTALL | re.UNICODE).
                                groups()[0])
