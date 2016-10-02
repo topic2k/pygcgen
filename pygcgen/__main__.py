@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
+
 import os
 import re
+import sys
 
-from .options_parser import OptionsParser
+from builtins import object
+
 from .generator import Generator
+from .options_parser import OptionsParser
+from .pygcgen_exceptions import ChangelogGeneratorError
 
 
-class ChangelogGenerator:
-    ''' Class responsible for whole change log generation cycle. '''
+class ChangelogGenerator(object):
+    """ Class responsible for whole change log generation cycle. """
 
     def __init__(self, options=None):
         '''
@@ -27,10 +31,15 @@ class ChangelogGenerator:
         of the specified tags was not found in list of tags.
         '''
         if not self.options.project or not self.options.user:
-            print("Project and/or user missing. For help run:\n  pygcgen --help")
+            print("Project and/or user missing. "
+                  "For help run:\n  pygcgen --help")
             return
 
-        log = self.generator.compound_changelog()
+        try:
+            log = self.generator.compound_changelog()
+        except (ChangelogGeneratorError) as err:
+            print("\n\033[91m\033[1m{}".format(err.args[0]))
+            exit(1)
 
         def checkname(filename):
             if not os.path.exists(filename):
@@ -55,7 +64,10 @@ class ChangelogGenerator:
             out = self.options.output
 
         with open(out, "w") as fh:
-            fh.write(log.encode("utf8"))
+            try:
+                fh.write(log.encode("utf8"))
+            except TypeError:
+                fh.write(log)
         if self.options.verbose:
             print("Done!")
             print("Generated log placed in {0}/{1}".format(
@@ -69,9 +81,11 @@ def run():
 
 def run_gui():
     import wx
-    from .gui import GeneratorApp, MainFrame
+    from .gui import GeneratorApp
+
+
     app = GeneratorApp()
-    wx.MessageBox("Not implemented yet.", os.path.basename(sys.argv[0]))
+    wx.MessageBox("Not yet implemented.", os.path.basename(sys.argv[0]))
     # win = MainFrame(None).Show()
     # app.MainLoop()
 

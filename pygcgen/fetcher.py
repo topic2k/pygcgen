@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import range
+from builtins import object
 import os
 import re
 import subprocess
 import threading
 from agithub.GitHub import GitHub
 
-from pygcgen_exceptions import GithubApiError
+from .pygcgen_exceptions import GithubApiError
 
 
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
@@ -23,7 +27,7 @@ NO_TOKEN_PROVIDED = \
     "50 requests to GitHub API per hour without token!"
 
 
-class Fetcher:
+class Fetcher(object):
     '''
     A Fetcher is responsible for all requests to GitHub and all basic
     manipulation with related data (such as filtering, validating, e.t.c).
@@ -32,6 +36,12 @@ class Fetcher:
     def __init__(self, options):
         self.options = options
         self.fetch_github_token()
+        if isinstance(self.options.user, bytes):
+            self.options.user = self.options.user.decode("utf8")
+        if isinstance(self.options.project, bytes):
+            self.options.project = self.options.project.decode("utf8")
+        if isinstance(self.options.token, bytes):
+            self.options.token= self.options.token.decode("utf8")
         if options.token:
             self.github = GitHub(
                 token=options.token,
@@ -231,7 +241,7 @@ class Fetcher:
 
         threads = []
         cnt = len(issues)
-        for i in range(0, (cnt / MAX_SIMULTANEOUS_REQUESTS) + 1):
+        for i in range(0, (cnt // MAX_SIMULTANEOUS_REQUESTS) + 1):
             for j in range(MAX_SIMULTANEOUS_REQUESTS):
                 idx = i * MAX_SIMULTANEOUS_REQUESTS + j
                 if idx == cnt:
@@ -303,7 +313,7 @@ def NextPage(gh):
             sub = subparts[1].split('=')
             if sub[0].strip() == 'rel':
                 if sub[1] == '"next"':
-                    page = int(re.match(ur'.*page=(\d+).*',
+                    page = int(re.match(r'.*page=(\d+).*',
                                subparts[0],
                                re.IGNORECASE | re.DOTALL | re.UNICODE).
                                groups()[0])

@@ -2,6 +2,10 @@
 
 
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
 from dateutil.parser import parse as dateutil_parser
 import dateutil.tz
 
@@ -22,7 +26,7 @@ def dt_parser(timestring):
     return result
 
 
-class Generator:
+class Generator(object):
     ''' A Generator responsible for all logic, related with
     change log generation from ready-to-parse issues. '''
 
@@ -75,7 +79,7 @@ class Generator:
         threads = []
         max_threads = 50
         cnt = len(self.filtered_tags)
-        for i in range(0, (cnt / max_threads) + 1):
+        for i in range(0, (cnt // max_threads) + 1):
             for j in range(max_threads):
                 idx = i * 50 + j
                 if idx == cnt:
@@ -189,7 +193,7 @@ class Generator:
         self.filtered_tags = tags_sorted
         self.fetch_issues_and_pr()
 
-        log = unicode(self.options.frontmatter) \
+        log = str(self.options.frontmatter) \
             if self.options.frontmatter else u""
         log += u"{0}\n\n".format(self.options.header)
 
@@ -876,12 +880,18 @@ class Generator:
             try:
                 idx = tag_names.index(tag)
             except ValueError:
-                ChangelogGeneratorError(
-                    "WARNING: can't find tag {0}, specified with "
+                raise ChangelogGeneratorError(
+                    "ERROR: can't find tag {0}, specified with "
                     "--between-tags option.".format(tag))
             between_tags.append(all_tags[idx])
 
         between_tags = self.sort_tags_by_date(between_tags)
+
+        if len(between_tags) == 1:
+            # if option --between-tags was only 1 tag given, duplicate it
+            # to generate the changelog only for that one tag.
+            between_tags.append(between_tags[0])
+
         older = self.get_time_of_tag(between_tags[1])
         newer = self.get_time_of_tag(between_tags[0])
 

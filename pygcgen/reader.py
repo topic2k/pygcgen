@@ -1,3 +1,4 @@
+from builtins import map
 # -*- coding: utf-8 -*-
 
 ###########  original file info from reader.rb  ####################
@@ -73,7 +74,7 @@ def parse(data):
         p = parse_heading(h)
         p["content"] = s
         parsed.append(p)
-    map(func, headings, sections)
+    list(map(func, headings, sections))
     return parsed
 
 
