@@ -880,12 +880,18 @@ class Generator(object):
             try:
                 idx = tag_names.index(tag)
             except ValueError:
-                ChangelogGeneratorError(
-                    "WARNING: can't find tag {0}, specified with "
+                raise ChangelogGeneratorError(
+                    "ERROR: can't find tag {0}, specified with "
                     "--between-tags option.".format(tag))
             between_tags.append(all_tags[idx])
 
         between_tags = self.sort_tags_by_date(between_tags)
+
+        if len(between_tags) == 1:
+            # if option --between-tags was only 1 tag given, duplicate it
+            # to generate the changelog only for that one tag.
+            between_tags.append(between_tags[0])
+
         older = self.get_time_of_tag(between_tags[1])
         newer = self.get_time_of_tag(between_tags[0])
 
