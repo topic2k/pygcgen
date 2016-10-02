@@ -4,10 +4,10 @@ import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup
-from setuptools_scm import get_version
+#from setuptools_scm import get_version
 
 
-git_version = get_version()  # root='..', relative_to=__file__)
+#git_version = get_version()  # root='..', relative_to=__file__)
 
 version = {}
 with open("pygcgen/version.py") as fp:
@@ -63,6 +63,6 @@ setup(
 
     entry_points={
         'console_scripts': ['pygcgen = pygcgen.__main__:run', ],
-        'gui_scripts': ['pygcgenw = pygcgen.__main__:run_gui', ],
+        #'gui_scripts': ['pygcgenw = pygcgen.__main__:run_gui', ],
     },
 )
