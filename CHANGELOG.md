@@ -1,5 +1,17 @@
 # Change Log
 
+# [v0.1.2](https://github.com/topic2k/pygcgen/tree/v0.1.2) (2016-10-02)
+[Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.1.1...v0.1.2)
+
+**Closed issues:**
+
+- Show example file! [\#2](https://github.com/topic2k/pygcgen/issues/2)
+- Publish to PyPI [\#1](https://github.com/topic2k/pygcgen/issues/1)
+
+**Merged pull requests:**
+
+- Python 2+3 compatibility [\#6](https://github.com/topic2k/pygcgen/pull/6) ([topic2k](https://github.com/topic2k))
+
 # [v0.1.1](https://github.com/topic2k/pygcgen/tree/v0.1.1) (2016-09-11)
 [Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.1.0...v0.1.1)
 
