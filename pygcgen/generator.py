@@ -466,34 +466,34 @@ class Generator(object):
         issues_a = []
         sections_a = {key:[] for key in self.options.sections.keys()}
 
-        for issue in issues:
-            added = False
-            if issue.get('labels'):
-                for label in issue['labels']:
-                    for section, s_labels in self.options.sections.items():
-                        if label["name"] in s_labels:
-                            sections_a[section].append(issue)
-                            added = True
-                            continue
-                    if added:
+        for section, sect_labels in self.options.sections.items():
+            added_issues = []
+            for issue in issues:
+                is_labels = issue.get('labels')
+                if is_labels:
+                    is_lbls = set(l["name"] for l in is_labels)
+                    if is_lbls.intersection(set(sect_labels)):
+                        sections_a[section].append(issue)
+                        added_issues.append(issue)
                         continue
-            if not added:
                 issues_a.append(issue)
+                added_issues.append(issue)
+            for iss in added_issues:
+                issues.remove(iss)
 
-        added_pull_requests = []
-        for pr in pull_requests:
-            for label in pr['labels']:
-                added = False
-                for section, s_labels in self.options.sections.items():
-                    if label["name"] in s_labels:
+        for section, sect_labels in self.options.sections.items():
+            added_pull_requests = []
+            for pr in pull_requests:
+                pr_labels = pr.get('labels')
+                if pr_labels:
+                    pr_lbls = set(l["name"] for l in pr_labels)
+                    if pr_lbls.intersection(set(sect_labels)):
                         sections_a[section].append(pr)
                         added_pull_requests.append(pr)
                         continue
-                if added:
-                    continue
+            for pr in added_pull_requests:
+                pull_requests.remove(pr)
 
-        for pr in added_pull_requests:
-            pull_requests.remove(pr)
         return [sections_a, issues_a]
 
     def exclude_issues_by_labels(self, issues):
