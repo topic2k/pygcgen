@@ -6,7 +6,7 @@ A python version of [GitHub Changelog Generator](https://github.com/skywinder/gi
 
 ## Status
 
-Currently i'm only testing on Win10 (64Bit) with Python 2.7 (3Bit).
+Tested on Win10 (64Bit) with Python 2.7 (32Bit, Stackless) and Python 3.5 (32Bit) and on Ubuntu 16.04 LTS (64Bit) with Python 3.5.
 
 ## Installation
 
