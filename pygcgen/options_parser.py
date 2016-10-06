@@ -16,12 +16,7 @@ from .version import __version__
 
 DEFAULT_OPTIONS = {
     "date_format": "%Y-%m-%d",
-    "exclude_labels": [
-        # "duplicate","Duplicate",
-        # "question", "Question",
-        # "invalid", "Invalid",
-        # "wontfix", "Wontfix",
-    ],
+    "exclude_labels": [],
     "git_remote": "origin",
     "github_api": "api.github.com",
     "github_site": "github.com",
