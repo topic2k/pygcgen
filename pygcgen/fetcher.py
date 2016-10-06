@@ -306,8 +306,8 @@ class Fetcher(object):
 
 def NextPage(gh):
     header = dict(gh.getheaders())
-    if 'link' in header:
-        parts = header['link'].split(',')
+    if 'Link' in header:
+        parts = header['Link'].split(',')
         for part in parts:
             subparts = part.split(';')
             sub = subparts[1].split('=')
