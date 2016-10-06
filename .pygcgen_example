@@ -65,14 +65,14 @@ unreleased-with-date
 # Don't include closed issues in changelog.
 ;no-issues
 
-# Don't include closed issues that don't have labels in changelog.
-;no-issues-wo-labels
-
-# Don't include pull requests that don't have labels in changelog.
-;no-pr-wo-labels
-
 # Don't include pull-requests in changelog.
 ;no-pull-requests
+
+# Don't include closed issues in changelog that don't have labels.
+;no-issues-wo-labels
+
+# Don't include pull requests in changelog that don't have labels.
+;no-pr-wo-labels
 
 # Don't use milestone to detect when issue was resolved.
 ;no-filter-by-milestone
@@ -97,17 +97,21 @@ unreleased-with-date
 # Label for unreleased closed issues.
 ;unreleased-label=Unreleased
 
-# Setup custom label for bug-fixes section.
-;bugs-label=**Fixed bugs:**
-
-# Setup custom label for enhancements section.
-;enhancement-label=**Implemented enhancements:**
-
 # Setup custom label for closed-issues section.
 ;issues-label=**Closed issues:**
 
 # Setup custom label for pull requests section.
 ;pr-label=**Merged pull requests:**
+
+# You can configure your own sections. To do that, for each section add a line
+# with comma separated values. The first value will be the prefix for the
+# section, the other values are the labels which should go into this section.
+section=**Fixed bugs:**, bug, Bug
+section=**Implemented enhancements:**, enhancement, Enhancement
+;section=**API changes:**, api-change
+;section="section with comma, works if quoted", demo
+;section="single 'quotes' in prefix", none
+;section='double "quotes" in prefix', "oh no"
 
 # Add YAML front matter. Formatted as JSON because it's easier to
 # add on the command line.
@@ -119,14 +123,6 @@ unreleased-with-date
 
 # Issues with the specified labels will always be excluded from changelog.
 ;exclude-labels=duplicate,Duplicate,question,Question,invalid,Invalid,wontfix,Wontfix
-
-# Issues with the specified labels will always be
-# added to 'Fixed bugs' section.
-;bug-labels=bug,Bug
-
-# Issues with the specified labels will always be
-# added to 'Implemented enhancements' section.
-;enhancement-labels=enhancement,Enhancement
 
 # The URL to point to for release links, in print format
 # (with the tag as variable).
