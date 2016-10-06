@@ -1,20 +1,29 @@
-from builtins import object
 # -*- coding: utf-8 -*-
 
+import re
+from builtins import object
+
+
+# Pattern to split list options (respecting quotes)
+regex = re.compile(
+    '\s*(^|,)\s*(["\'])?(?(2)(?P<label1>.*?)\\2|(?P<label2>.*?)((?=,)|$))'
+)
 
 FILENAME = ".pygcgen"
 KNOWN_INTEGER_KEYS = ["max_issues"]
 KNOWN_ARRAY_KEYS = [ # TODO: umbauen auf dict(key: cnt) # cnt=Anzahl:-1=egal
     "between_tags",
-    "bug_labels",
-    "enhancement_labels",
     "exclude_labels",
     "exclude_tags"
     "include_labels",
+    "section",
 ]
+KNOWN_MULTIPLE_OPTIONS = {
+    # False means the option wasn't used in config file
+    # Used to overwrite value given by commandline
+    "section": False
+}
 IRREGULAR_OPTIONS = {
-    "bugs_label": "bug_prefix",
-    "enhancement_label": "enhancement_prefix",
     "front_matter": "frontmatter",
     "github_api": "github_endpoint",
     "header_label": "header",
@@ -37,7 +46,7 @@ BOOL_KEYS = {
     "no_filter_by_milestone": False,
     "no_issues": False,
     "no_issues_wo_labels": False,
-    "no_overwrite": False,
+    "no_overwrite": True,
     "no_pr_wo_labels": False,
     "no_pull_requests": False,
     "simple_list": True,
@@ -95,8 +104,21 @@ class OptionsFileParser(object):
         option_name, value = self.extract_pair(line)
         if option_name in IRREGULAR_OPTIONS:
             option_name = IRREGULAR_OPTIONS[option_name]
-        self.options.__dict__[option_name] = self.convert_value(value,
-                                                                option_name)
+        if option_name in KNOWN_MULTIPLE_OPTIONS.keys():
+            if self.options.__dict__[option_name] and \
+                KNOWN_MULTIPLE_OPTIONS[option_name]:
+                self.options.__dict__[option_name].append(
+                    self.convert_value(value, option_name)
+                )
+            else:
+                self.options.__dict__[option_name] = [
+                    self.convert_value(value, option_name),
+                ]
+                KNOWN_MULTIPLE_OPTIONS[option_name] = True
+        else:
+            self.options.__dict__[option_name] = self.convert_value(
+                value, option_name
+            )
 
     @staticmethod
     def non_configuration_line(line):
@@ -121,7 +143,13 @@ class OptionsFileParser(object):
     @staticmethod
     def convert_value(value, option_name):
         if option_name in KNOWN_ARRAY_KEYS:
-            value = value.split(",")
+            val = []
+            for item in regex.finditer(value):
+                val.append(
+                    item.group("label1") if item.group("label1")
+                    else item.group("label2")
+                )
+            value = val
         elif option_name in KNOWN_INTEGER_KEYS:
             value = int(value)
         elif option_name in BOOL_KEYS:

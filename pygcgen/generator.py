@@ -219,10 +219,10 @@ class Generator(object):
         log = ""
         if issues:
             if not self.options.simple_list:
-                log += u"{prefix}\n\n".format(prefix=prefix)
+                log += u"{0}\n\n".format(prefix)
             for issue in issues:
                 merge_string = self.get_string_for_issue(issue)
-                log += u"- {merge_string}\n".format(merge_string=merge_string)
+                log += u"- {0}\n".format(merge_string)
             log += "\n"
         return log
 
@@ -289,7 +289,7 @@ class Generator(object):
         if not filtered_issues and not filtered_pull_requests:
             # do not generate an unreleased section if it would be empty
             return ""
-        return self.create_log_for_tag(
+        return self.generate_log_for_tag(
             filtered_pull_requests, filtered_issues,
             newer_tag, older_tag_name)
 
@@ -314,7 +314,6 @@ class Generator(object):
             filtered_pull_requests = self.filter_by_milestone(
                 filtered_pull_requests, newer_tag_name, self.pull_requests)
         return filtered_issues, filtered_pull_requests
-        #return [filtered_issues, filtered_pull_requests]
 
     def generate_log_for_all_tags(self):
         '''
@@ -405,8 +404,8 @@ class Generator(object):
             )
         return line
 
-    def create_log_for_tag(self, pull_requests, issues,
-                           newer_tag, older_tag_name=None):
+    def generate_log_for_tag(self, pull_requests, issues,
+                             newer_tag, older_tag_name=None):
         '''
         Generates log for section with header and body.
 
@@ -446,12 +445,11 @@ class Generator(object):
         '''
 
         log = ""
-        bugs_a, enhancement_a, issues_a = self.parse_by_sections(
+        sections_a, issues_a = self.parse_by_sections(
             issues, pull_requests)
 
-        log += self.generate_sub_section(enhancement_a,
-                                         self.options.enhancement_prefix)
-        log += self.generate_sub_section(bugs_a, self.options.bug_prefix)
+        for section, s_issues in sections_a.items():
+            log += self.generate_sub_section(s_issues, section)
         log += self.generate_sub_section(issues_a, self.options.issue_prefix)
         return log
 
@@ -466,20 +464,18 @@ class Generator(object):
         '''
 
         issues_a = []
-        enhancement_a = []
-        bugs_a = []
+        sections_a = {key:[] for key in self.options.sections.keys()}
 
         for issue in issues:
             added = False
             if issue.get('labels'):
                 for label in issue['labels']:
-                    if label["name"] in self.options.bug_labels:
-                        bugs_a.append(issue)
-                        added = True
-                        continue
-                    if label["name"] in self.options.enhancement_labels:
-                        enhancement_a.append(issue)
-                        added = True
+                    for section, s_labels in self.options.sections.items():
+                        if label["name"] in s_labels:
+                            sections_a[section].append(issue)
+                            added = True
+                            continue
+                    if added:
                         continue
             if not added:
                 issues_a.append(issue)
@@ -487,18 +483,18 @@ class Generator(object):
         added_pull_requests = []
         for pr in pull_requests:
             for label in pr['labels']:
-                if label["name"] in self.options.bug_labels:
-                    bugs_a.append(pr)
-                    added_pull_requests.append(pr)
-                    continue
-                if label["name"] in self.options.enhancement_labels:
-                    enhancement_a.append(pr)
-                    added_pull_requests.append(pr)
+                added = False
+                for section, s_labels in self.options.sections.items():
+                    if label["name"] in s_labels:
+                        sections_a[section].append(pr)
+                        added_pull_requests.append(pr)
+                        continue
+                if added:
                     continue
 
         for pr in added_pull_requests:
             pull_requests.remove(pr)
-        return [bugs_a, enhancement_a, issues_a]
+        return [sections_a, issues_a]
 
     def exclude_issues_by_labels(self, issues):
         '''

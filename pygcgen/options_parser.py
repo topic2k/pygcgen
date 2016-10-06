@@ -1,29 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from builtins import object
+
 import argparse
 import os
 import re
 import subprocess
 import sys
+from builtins import object
+from collections import OrderedDict
 
 from .optionsfile_parser import OptionsFileParser
 from .version import __version__
 
 
 DEFAULT_OPTIONS = {
-    "bug_labels": ["bug", "Bug"],
-    "bug_prefix": "**Fixed bugs:**",
     "date_format": "%Y-%m-%d",
-    "enhancement_labels": ["enhancement", "Enhancement"],
-    "enhancement_prefix": "**Implemented enhancements:**",
-    "exclude_labels": [
-        "duplicate","Duplicate",
-        "question", "Question",
-        "invalid", "Invalid",
-        "wontfix", "Wontfix",
-    ],
+    "exclude_labels": [],
     "git_remote": "origin",
     "github_api": "api.github.com",
     "github_site": "github.com",
@@ -33,7 +26,6 @@ DEFAULT_OPTIONS = {
     "merge_prefix": "**Merged pull requests:**",
     "output": "CHANGELOG.md",
     "unreleased_label": "Unreleased",
-    #"base": "HISTORY.md",
 }
 
 
@@ -84,22 +76,15 @@ class OptionsParser(object):
         )
         parser.add_argument(
             "-b", "--base", metavar="FILE",
-            #default=DEFAULT_OPTIONS["base"],
             help="Optional base file to append to generated changelog."
         )
         parser.add_argument(
-            "--bugs-label",
-            dest="bug_prefix",
-            default=DEFAULT_OPTIONS["bug_prefix"],
-            help="Setup custom label for bug-fixes section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["bug_prefix"])
-        )
-        parser.add_argument(
-            "--enhancement-label",
-            dest="enhancement_prefix",
-            default=DEFAULT_OPTIONS["enhancement_prefix"],
-            help="Setup custom label for enhancements section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["enhancement_prefix"])
+            "-s", "--section", action="append", nargs="*",
+            metavar=('PREFIX', 'LABEL'),
+            # metavar='"SECTION PREFIX" "LABEL 1" ["LABEL x" ...]',
+            help="Add a new section to the changelog with the prefix " \
+                 "'PREFIX'. All issues that match one of the LABEL's " \
+                 "will be listed in this section."
         )
         parser.add_argument(
             "--issues-label",
@@ -205,20 +190,6 @@ class OptionsParser(object):
                  "Default labels: {0}".format(DEFAULT_OPTIONS["exclude_labels"])
         )
         parser.add_argument(
-            "--bug-labels", metavar="LABEL",
-            nargs='*', default=DEFAULT_OPTIONS["bug_labels"],
-            help="Issues with the specified labels will be always added "
-                 "to 'Fixed bugs' section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["bug_labels"])
-        )
-        parser.add_argument(
-            "--enhancement-labels",
-            nargs='*', default=DEFAULT_OPTIONS["enhancement_labels"],
-            help="Issues with the specified labels will be always added "
-                 "to 'Implemented enhancements' section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["enhancement_labels"])
-        )
-        parser.add_argument(
             "--between-tags",  metavar="TAG",
             nargs='*', # TODO: nargs=* ?
             help="Changelog will be filled only between specified tags."
@@ -289,16 +260,35 @@ class OptionsParser(object):
         )
         parser.add_argument(
             "--version",
-            action='version', version="%(prog)s {0}".format(__version__),
+            action='version',
+            version="%(prog)s v{0}".format(__version__),
+            # version="%(prog)s {0} (Python {1}\n{2})".format(
+            #     __version__, sys.version, platform.platform()),
             help="Print version number"
         )
         opts = parser.parse_args(options)
+
         if not opts.options_file:
             opts.options_file = ".pygcgen"
         if os.path.exists(opts.options_file):
             OptionsFileParser(options=opts).parse()
         if not opts.user or not opts.project:
             self.fetch_user_and_project(opts)
+
+        sections = OrderedDict()
+        if opts.section:
+            for s in opts.section:
+                labels = []
+                for l in s[1:]:
+                    # this is to remove empty label strings (could happen if
+                    # in the config file a section line ends with a comma.)
+                    if l:
+                        labels.append(l)
+                sections.update({s[0]: labels})
+
+        opts.sections = sections
+        del opts.section
+
         return opts
 
     def fetch_user_and_project(self, options):
@@ -320,6 +310,9 @@ class OptionsParser(object):
             ])
         except subprocess.CalledProcessError:
             return None, None
+        except WindowsError:
+            print("git binary not found.")
+            exit(1)
         else:
             return self.user_project_from_remote(remote)
 
