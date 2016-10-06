@@ -38,7 +38,7 @@ class ChangelogGenerator(object):
         try:
             log = self.generator.compound_changelog()
         except (ChangelogGeneratorError) as err:
-            print("\n\033[91m\033[1m{}".format(err.args[0]))
+            print("\n\033[91m\033[1m{}\x1b[0m".format(err.args[0]))
             exit(1)
 
         def checkname(filename):
