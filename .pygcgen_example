@@ -106,6 +106,7 @@ unreleased-with-date
 # You can configure your own sections. To do that, for each section add a line
 # with comma separated values. The first value will be the prefix for the
 # section, the other values are the labels which should go into this section.
+# The sections will be sorted in the order they are added.
 section=**Fixed bugs:**, bug, Bug
 section=**Implemented enhancements:**, enhancement, Enhancement
 ;section=**API changes:**, api-change
