@@ -19,7 +19,7 @@ from .pygcgen_exceptions import ChangelogGeneratorError
 class ChangelogGenerator(object):
     """ Class responsible for whole change log generation cycle. """
 
-    def __init__(self, options=None) -> ChangelogGenerator:
+    def __init__(self, options=None):
         '''
         :type options: dict
         :param options: dictionary with all options

@@ -16,12 +16,10 @@ from collections import OrderedDict
 import dateutil.tz
 from dateutil.parser import parse as dateutil_parser
 
-from .fetcher import Fetcher
-from .pygcgen_exceptions import ChangelogGeneratorError, GithubApiError
+from .fetcher import Fetcher, REPO_CREATED_TAG_NAME
+from .pygcgen_exceptions import ChangelogGeneratorError
 from .reader import read_changelog
 
-
-REPO_CREATED_KEY = "repo_created_at"
 
 def dt_parser(timestring):
     result = dateutil_parser(str(timestring))
@@ -111,15 +109,10 @@ class Generator(object):
                 if not issues.index(issue) % 30:
                     print("")
             self.find_closed_date_by_commit(issue)
-            if not issue.get('actual_date'):
+            if not issue.get('actual_date', False):
                 # TODO: don't remove it ???
-                print(
-                    "\nHELP ME! is it correct to skip #{0} {1}?".format(
-                        issue["number"], issue["title"]
-                    )
-                )
-                if issue in issues:
-                    issues.remove(issue)
+                print("\nHELP ME! is it correct to skip #{0} {1}?".format(issue["number"], issue["title"]))
+                issues.remove(issue)
 
         if self.options.verbose:
             print("\nDone.")
@@ -170,8 +163,8 @@ class Generator(object):
         #except UnicodeWarning:
         #    print(commit)
         #    issue['actual_date'] = dt_parser(commit['author']['date'])
-        except (ValueError, GithubApiError):
-            print("\nWARNING: Can't fetch commit {0}. "
+        except ValueError:
+            print("WARNING: Can't fetch commit {0}. "
                   "It is probably referenced from another repo.".
                   format(event['commit_id']))
             issue['actual_date'] = dt_parser(issue['closed_at'])
@@ -270,7 +263,7 @@ class Generator(object):
                         release_url=release_url,
                         time_string=time_string)
 
-        if self.options.compare_link and older_tag_link != REPO_CREATED_KEY:
+        if self.options.compare_link and older_tag_link != REPO_CREATED_TAG_NAME:
             # Generate compare link
             log += u"[Full Changelog]({project_url}/compare/{older_tag_link}" \
                    u"...{newer_tag_link})\n\n".format(
@@ -821,11 +814,11 @@ class Generator(object):
             self.get_temp_tag_for_repo_creation()
 
     def get_temp_tag_for_repo_creation(self):
-        tag_date = self.tag_times_dict.get(REPO_CREATED_KEY, None)
+        tag_date = self.tag_times_dict.get(REPO_CREATED_TAG_NAME, None)
         if not tag_date:
-            tag_name, tag_date = self.fetcher.get_first_event_date()
+            tag_name, tag_date = self.fetcher.fetch_repo_creation_date()
             self.tag_times_dict[tag_name] = dt_parser(tag_date)
-        return REPO_CREATED_KEY
+        return REPO_CREATED_TAG_NAME
 
     def get_filtered_tags(self, all_tags):
         '''
@@ -849,7 +842,7 @@ class Generator(object):
         '''
 
         tag = self.detect_since_tag()
-        if not tag or tag == REPO_CREATED_KEY:
+        if not tag or tag == REPO_CREATED_TAG_NAME:
             return copy.deepcopy(all_tags)
 
         filtered_tags = []
