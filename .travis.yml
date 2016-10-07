@@ -9,6 +9,8 @@ python:
   - "pypy"
   - "pypy3"
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install:
+    "pip install -r requirements.txt"
+    "pip install ."
 # command to run tests
-script: run-a-test-generation.py
+script: pygcgen
