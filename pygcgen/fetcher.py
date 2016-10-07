@@ -16,7 +16,6 @@ from agithub.GitHub import GitHub
 
 from .pygcgen_exceptions import GithubApiError
 
-
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
 PER_PAGE_NUMBER = 100
 MAX_SIMULTANEOUS_REQUESTS = 25
@@ -28,6 +27,7 @@ NO_TOKEN_PROVIDED = \
     "Warning: No token provided. Neither -t option, git config or variable " \
     "$CHANGELOG_GITHUB_TOKEN was not found. This script can make only " \
     "50 requests to GitHub API per hour without token!"
+REPO_CREATED_TAG_NAME = "repo_created_at"
 
 
 class Fetcher(object):
@@ -83,7 +83,7 @@ class Fetcher(object):
         """
         Fetch all tags for repository from Github.
 
-        :return: list of tags in repository
+        :return: tags in repository
         :rtype: list
         """
 
@@ -104,7 +104,7 @@ class Fetcher(object):
             if rc == 200:
                 tags.extend(data)
             else:
-                self.check_returncode(rc, data, gh.getheaders())
+                self.raise_GitHubError(rc, data, gh.getheaders())
             page = NextPage(gh)
         if self.options.verbose:
             print(".")
@@ -116,13 +116,14 @@ class Fetcher(object):
             print("Found {0} tag(s)".format(len(tags)))
         return tags
 
-    def fetch_closed_issues_and_pr(self):
+    def fetch_closed_issues_and_pr(self) -> (list, list):
         """
-        This method fetch all closed issues and separate them to
+        This method fetches all closed issues and separate them to
         pull requests and pure issues (pull request is kind of issue
         in term of GitHub).
 
-        @return [Tuple] with (issues, pull-requests)
+        :rtype: list, list
+        :return: issues, pull-requests
         """
 
         verbose = self.options.verbose
@@ -145,7 +146,7 @@ class Fetcher(object):
             if rc == 200:
                 issues.extend(data)
             else:
-                self.check_returncode(rc, data, gh.getheaders())
+                self.raise_GitHubError(rc, data, gh.getheaders())
             if len(issues) >= self.options.max_issues:
                 break
             page = NextPage(gh)
@@ -164,11 +165,12 @@ class Fetcher(object):
                 iss.append(i)
         return iss, prs
 
-    def fetch_closed_pull_requests(self):
+    def fetch_closed_pull_requests(self) -> list:
         """
         Fetch all pull requests. We need them to detect "merged_at" parameter
 
-        @return [Array] all pull requests
+        :rtype: list
+        :return: all pull requests
         """
 
         pull_requests = []
@@ -196,7 +198,7 @@ class Fetcher(object):
             if rc == 200:
                 pull_requests.extend(data)
             else:
-                self.check_returncode(rc, data, gh.getheaders())
+                self.raise_GitHubError(rc, data, gh.getheaders())
             page = NextPage(gh)
         if verbose:
             print(".")
@@ -204,25 +206,32 @@ class Fetcher(object):
                 "Fetched closed pull requests: {0}".format(len(pull_requests)))
         return pull_requests
 
-    def get_first_event_date(self):
+    def fetch_repo_creation_date(self) -> (str, str):
+        """
+        Get the creation date of the repository from GitHub.
+
+        :rtype: str, str
+        :return: special tag name, creation date as ISO date string
+        """
         gh = self.github
         user = self.options.user
         repo = self.options.project
         rc, data = gh.repos[user][repo].get()
         if rc == 200:
-            tag_name = "repo_created_at"
-            tag_date = data["created_at"]
-            return tag_name, tag_date
+            return REPO_CREATED_TAG_NAME, data["created_at"]
         else:
-            self.check_returncode(rc, data, gh.getheaders())
+            self.raise_GitHubError(rc, data, gh.getheaders())
         return None, None
 
-    def fetch_events_async(self, issues, label):
+    def fetch_events_async(self, issues: list, tag_name: str) -> None:
         """
         Fetch events for all issues and add them to self.events
 
-        @param [Array] issues
+        :param list issues: all issues
+        :param str tag_name: name of the tag to fetch events for
+        :returns: Nothing
         """
+
         if not issues:
             return issues
         verbose = self.options.verbose
@@ -231,7 +240,7 @@ class Fetcher(object):
         repo = self.options.project
         self.events_cnt = 0
         if verbose:
-            print("events for {0} (async)... ".format(label))
+            print("events for {0} ... ".format(tag_name))
 
         def worker(issue):
             page = 1
@@ -244,7 +253,7 @@ class Fetcher(object):
                     issue['events'].extend(data)
                     self.events_cnt += len(data)
                 else:
-                    self.check_returncode(rc, data, gh.getheaders())
+                    self.raise_GitHubError(rc, data, gh.getheaders())
                 page = NextPage(gh)
 
         threads = []
@@ -266,11 +275,13 @@ class Fetcher(object):
         if verbose:
             print(".")
 
-    def fetch_date_of_tag(self, tag):
-        """Fetch tag time from repo
+    def fetch_date_of_tag(self, tag: dict) -> str:
+        """
+        Fetch time for tag from repository.
 
-        @param [Hash] tag
-        @return [Time] time of specified tag
+        :param dict tag: dictionary with tag information
+        :rtype: str
+        :return: time of specified tag as ISO date string
         """
 
         if self.options.verbose:
@@ -282,17 +293,18 @@ class Fetcher(object):
         rc, data = gh.repos[user][repo].git.commits[
             tag["commit"]["sha"]].get()
         if rc == 200:
-            time_string = data["committer"]["date"]
-            return time_string
-        else:
-            self.check_returncode(rc, data, gh.getheaders())
-        return None
+            return data["committer"]["date"]
+        self.raise_GitHubError(rc, data, gh.getheaders())
 
-    def fetch_commit(self, event):
+    def fetch_commit(self, event: dict) -> dict:
         """
-        Fetch commit for specified event
-        @return [Hash]
+        Fetch commit data for specified event.
+
+        :param dict event: dictionary with event information
+        :rtype: dict
+        :return: dictionary with commit data
         """
+
         gh = self.github
         user = self.options.user
         repo = self.options.project
@@ -301,19 +313,24 @@ class Fetcher(object):
             event["commit_id"]].get()
         if rc == 200:
             return data
-        else:
-            self.check_returncode(rc, data, gh.getheaders())
-        return None
+        self.raise_GitHubError(rc, data, gh.getheaders())
 
     @staticmethod
-    def check_returncode(rc, data, header):
+    def raise_GitHubError(rc, data, header):
         hdr = dict(header)
         if rc == 403 and hdr.get("x-ratelimit-remaining") == '0':
             raise GithubApiError(GH_RATE_LIMIT_EXCEEDED_MSG)
         raise GithubApiError("({0}) {1}".format(rc, data["message"]))
 
 
-def NextPage(gh):
+def NextPage(gh: GitHub) -> int:
+    """
+    Checks if a GitHub call returned multiple pages of data.
+
+    :param gh: GitHub() instance
+    :rtype: int
+    :return: number of next page or 0 if no next page
+    """
     header = dict(gh.getheaders())
     if 'Link' in header:
         parts = header['Link'].split(',')
