@@ -102,8 +102,10 @@ class OptionsFileParser(object):
         if not line or self.non_configuration_line(line):
             return
         option_name, value = self.extract_pair(line)
+
         if option_name in IRREGULAR_OPTIONS:
             option_name = IRREGULAR_OPTIONS[option_name]
+
         if option_name in KNOWN_MULTIPLE_OPTIONS.keys():
             if self.options.__dict__[option_name] and \
                 KNOWN_MULTIPLE_OPTIONS[option_name]:
@@ -137,7 +139,7 @@ class OptionsFileParser(object):
             key = line
             value = ""
         key = key.strip().lower().replace("-", "_")
-        value = value.strip().replace("\r", "").replace("\n", "")
+        value = value.replace("\\n", "\n")
         return key, value
 
     @staticmethod

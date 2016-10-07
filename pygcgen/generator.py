@@ -111,7 +111,7 @@ class Generator(object):
             self.find_closed_date_by_commit(issue)
             if not issue.get('actual_date', False):
                 # TODO: don't remove it ???
-                print("\nHELP ME! is it correct to skip #{0} {1}".format(issue["number"], issue["title"]))
+                print("\nHELP ME! is it correct to skip #{0} {1}?".format(issue["number"], issue["title"]))
                 issues.remove(issue)
 
         if self.options.verbose:
@@ -326,16 +326,26 @@ class Generator(object):
             print("Generating log...")
         self.issues2 = copy.deepcopy(self.issues)
 
-        log = ""
+        log1 = ""
         if self.options.with_unreleased:
-            log = self.generate_unreleased_section()
+            log1 = self.generate_unreleased_section()
 
+        log = ""
         for index in range(len(self.filtered_tags)-1):
             if self.options.verbose:
                 print("\tgenerate log for {0}".format(
                     self.filtered_tags[index]["name"]))
-            log += self.generate_log_between_tags(
+            log2 = self.generate_log_between_tags(
                 self.filtered_tags[index + 1], self.filtered_tags[index])
+            if self.options.tag_separator and log and log2:
+                log = log + self.options.tag_separator + log2
+            else:
+                log += log2
+
+        if self.options.tag_separator and log1:
+            log = log1 + self.options.tag_separator + log
+        else:
+            log = log1 + log
 
         if len(self.filtered_tags) != 0:
             older_tag = {"name": self.get_temp_tag_for_repo_creation()}
@@ -350,8 +360,12 @@ class Generator(object):
             if self.options.verbose:
                 print("\tgenerate log for {0}".format(
                     self.filtered_tags[-1]["name"]))
-            log += self.generate_log_between_tags(
+            log2 = self.generate_log_between_tags(
                 older_tag, self.filtered_tags[-1])
+            if self.options.tag_separator and log and log2:
+                log = log + self.options.tag_separator + log2
+            else:
+                log += log2
         return log
 
     def generate_unreleased_section(self):

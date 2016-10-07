@@ -38,6 +38,9 @@ with-unreleased=True
 # You can use this to generate the log for a specific tag (version).
 ;between-tags=2.0.4,2.0.4
 
+# You can add text between tags:
+tag-separator =  ---\n\n
+
 # Change log will exclude specified tags.
 ;exclude-tags=v0.1,0.1,compilerBug
 
