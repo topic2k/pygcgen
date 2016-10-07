@@ -1,5 +1,20 @@
 # Change Log
 
+# [v0.2.1](https://github.com/topic2k/pygcgen/tree/v0.2.1) (2016-10-07)
+[Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.2.0...v0.2.1)
+
+**Implemented enhancements:**
+
+- add quiet option [\#14](https://github.com/topic2k/pygcgen/pull/14) ([topic2k](https://github.com/topic2k))
+
+**Closed issues:**
+
+- Issues missing if no section given [\#12](https://github.com/topic2k/pygcgen/issues/12)
+
+**Merged pull requests:**
+
+- Show issues in changelog when no section\(s\) were given. [\#13](https://github.com/topic2k/pygcgen/pull/13) ([topic2k](https://github.com/topic2k))
+
 # [v0.2.0](https://github.com/topic2k/pygcgen/tree/v0.2.0) (2016-10-07)
 [Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.1.2...v0.2.0)
 
