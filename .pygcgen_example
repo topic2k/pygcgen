@@ -95,7 +95,7 @@ unreleased-with-date
 ;no-compare-link
 
 #Setup custom header label.
-;header-label=# Changelog generated with [pygcgen](http://www.github.com/topic2k/pygcgen)
+header-label=# Changelog generated with [pygcgen](http://www.github.com/topic2k/pygcgen)\n<br>
 
 # Label for unreleased closed issues.
 ;unreleased-label=Unreleased

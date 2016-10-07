@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from builtins import object
-from dateutil.parser import parse as dateutil_parser
-import dateutil.tz
+from __future__ import division, print_function
 
-import re
 import copy
-import threading
 import datetime
+import re
+import threading
+from builtins import object, range, str
+from collections import OrderedDict
+
+import dateutil.tz
+from dateutil.parser import parse as dateutil_parser
 
 from .fetcher import Fetcher
-from .reader import read_changelog
 from .pygcgen_exceptions import ChangelogGeneratorError
+from .reader import read_changelog
 
 
 REPO_CREATED_KEY = "repo_created_at"
@@ -478,7 +477,7 @@ class Generator(object):
         '''
 
         issues_a = []
-        sections_a = {key:[] for key in self.options.sections.keys()}
+        sections_a = OrderedDict({key:[] for key in self.options.sections.keys()})
 
         for section, sect_labels in self.options.sections.items():
             added_issues = []
