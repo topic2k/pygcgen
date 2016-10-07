@@ -481,6 +481,10 @@ class Generator(object):
 
         issues_a = []
         sections_a = OrderedDict()
+
+        if not self.options.sections:
+            return [sections_a, issues]
+
         for key in self.options.sections:
             sections_a.update({key: []})
 
