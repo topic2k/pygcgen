@@ -6,7 +6,7 @@ python:
   - "pypy3"
 # command to install dependencies
 install:
-  - "pip install --update setuptools"
+  - "pip install --upgrade setuptools"
   - "pip install -r requirements.txt"
   - "pip install ."
 # command to run tests
