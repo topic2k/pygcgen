@@ -7,7 +7,10 @@ import copy
 import datetime
 import re
 import threading
-from builtins import object, range, str
+try:
+    from builtins import object, range, str
+except ImportError:
+    pass
 from collections import OrderedDict
 
 import dateutil.tz

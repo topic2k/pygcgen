@@ -1,4 +1,3 @@
-from builtins import map
 # -*- coding: utf-8 -*-
 
 ###########  original file info from reader.rb  ####################
@@ -28,7 +27,12 @@ from builtins import map
 #   reader = GitHubChangelogGenerator::Reader.new
 #   content = reader.read('./CHANGELOG.md')
 
+
 import re
+try:
+    from builtins import map
+except ImportError:
+    pass
 
 
 def parse_heading(heading):

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import re
-from builtins import object
+try:
+    from builtins import object
+except ImportError:
+    pass
 
 
 # Pattern to split list options (respecting quotes)

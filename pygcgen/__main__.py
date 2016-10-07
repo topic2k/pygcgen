@@ -6,7 +6,10 @@ import os
 import re
 import sys
 
-from builtins import object
+try:
+    from builtins import object
+except ImportError:
+    pass
 
 from .generator import Generator
 from .options_parser import OptionsParser

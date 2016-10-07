@@ -7,7 +7,10 @@ import os
 import re
 import subprocess
 import sys
-from builtins import object
+try:
+    from builtins import object
+except ImportError:
+    pass
 from collections import OrderedDict
 
 from .optionsfile_parser import OptionsFileParser
