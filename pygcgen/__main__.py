@@ -21,8 +21,8 @@ class ChangelogGenerator(object):
 
     def __init__(self, options=None):
         '''
-        :type options: dict
-        :param options: dictionary with all options
+        :type options: list
+        :param options: command line arguments
         '''
 
         self.options = OptionsParser(options).options
