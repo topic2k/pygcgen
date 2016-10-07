@@ -1,5 +1,16 @@
 # Change Log
 
+# [v0.2.0](https://github.com/topic2k/pygcgen/tree/v0.2.0) (2016-10-07)
+[Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.1.2...v0.2.0)
+
+## <u>**Usage changes:</u>**
+
+- Add user definable sections [\#7](https://github.com/topic2k/pygcgen/issues/7)
+
+**Implemented enhancements:**
+
+- new option: tag-separator [\#11](https://github.com/topic2k/pygcgen/pull/11) ([topic2k](https://github.com/topic2k))
+
 # [v0.1.2](https://github.com/topic2k/pygcgen/tree/v0.1.2) (2016-10-02)
 [Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.1.1...v0.1.2)
 
