@@ -266,6 +266,11 @@ class OptionsParser(object):
             help="Run verbosely."
         )
         parser.add_argument(
+            "-q", "--quiet",
+            action='store_true',
+            help="Don't output progress information."
+        )
+        parser.add_argument(
             "--version",
             action='version',
             version="%(prog)s v{0}".format(__version__),
