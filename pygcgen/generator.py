@@ -477,7 +477,9 @@ class Generator(object):
         '''
 
         issues_a = []
-        sections_a = OrderedDict({key:[] for key in self.options.sections.keys()})
+        sections_a = OrderedDict()
+        for key in self.options.sections:
+            sections_a.update({key: []})
 
         for section, sect_labels in self.options.sections.items():
             added_issues = []
