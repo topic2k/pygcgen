@@ -38,6 +38,9 @@ class ChangelogGenerator(object):
                   "For help run:\n  pygcgen --help")
             return
 
+        if not self.options.quiet:
+            print("Generating changelog...")
+
         try:
             log = self.generator.compound_changelog()
         except (ChangelogGeneratorError) as err:
@@ -71,7 +74,7 @@ class ChangelogGenerator(object):
                 fh.write(log.encode("utf8"))
             except TypeError:
                 fh.write(log)
-        if self.options.verbose:
+        if not self.options.quiet:
             print("Done!")
             print("Generated log placed in {0}/{1}".format(
                 os.getcwd(), out)

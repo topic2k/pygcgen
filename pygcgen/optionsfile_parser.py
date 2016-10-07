@@ -52,6 +52,7 @@ BOOL_KEYS = {
     "no_overwrite": True,
     "no_pr_wo_labels": False,
     "no_pull_requests": False,
+    "quiet": False,
     "simple_list": True,
     "unreleased_only": True,
     "unreleased_with_date": True,
