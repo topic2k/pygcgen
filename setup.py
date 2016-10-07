@@ -10,8 +10,8 @@ from setuptools import setup
 #git_version = get_version()  # root='..', relative_to=__file__)
 
 version = {}
-with open("pygcgen/version.py") as fp:
-    exec (fp.read(), version)
+with open("pygcgen/version.py") as fh:
+    exec(fh.read(), version)
 
 setup(
     name=version['__title__'],
