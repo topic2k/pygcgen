@@ -190,6 +190,10 @@ class OptionsParser(object):
                  "Default labels: {0}".format(DEFAULT_OPTIONS["exclude_labels"])
         )
         parser.add_argument(
+            "--tag-separator",  metavar="SEPARATOR",
+            help="The SEPARATOR will be inserted in the log between tags."
+        )
+        parser.add_argument(
             "--between-tags",  metavar="TAG",
             nargs='*', # TODO: nargs=* ?
             help="Changelog will be filled only between specified tags."
