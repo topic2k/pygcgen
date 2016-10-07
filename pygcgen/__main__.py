@@ -19,9 +19,10 @@ from .pygcgen_exceptions import ChangelogGeneratorError
 class ChangelogGenerator(object):
     """ Class responsible for whole change log generation cycle. """
 
-    def __init__(self, options=None):
+    def __init__(self, options=None) -> ChangelogGenerator:
         '''
-        @return initialised instance of ChangelogGenerator
+        :type options: dict
+        :param options: dictionary with all options
         '''
 
         self.options = OptionsParser(options).options

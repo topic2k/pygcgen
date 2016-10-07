@@ -31,20 +31,22 @@ NO_TOKEN_PROVIDED = \
 
 
 class Fetcher(object):
-    '''
+    """
     A Fetcher is responsible for all requests to GitHub and all basic
     manipulation with related data (such as filtering, validating, e.t.c).
-    '''
+    """
 
     def __init__(self, options):
         self.options = options
+        self.first_issue = None
+        self.events_cnt = 0
         self.fetch_github_token()
         if isinstance(self.options.user, bytes):
             self.options.user = self.options.user.decode("utf8")
         if isinstance(self.options.project, bytes):
             self.options.project = self.options.project.decode("utf8")
         if isinstance(self.options.token, bytes):
-            self.options.token= self.options.token.decode("utf8")
+            self.options.token = self.options.token.decode("utf8")
         if options.token:
             self.github = GitHub(
                 token=options.token,
@@ -54,13 +56,13 @@ class Fetcher(object):
             self.github = GitHub(api_url=options.github_endpoint)
 
     def fetch_github_token(self):
-        '''
-        Returns GitHub token. First try to use variable provided
+        """
+        Fetch GitHub token. First try to use variable provided
         by --token option, otherwise try to fetch it from git config
         and last CHANGELOG_GITHUB_TOKEN env variable.
 
-        @return [String]
-        '''
+        :returns: Nothing
+        """
 
         if not self.options.token:
             try:
@@ -77,12 +79,13 @@ class Fetcher(object):
         if not self.options.token:
             print(NO_TOKEN_PROVIDED)
 
-    def get_all_tags(self):
-        '''
-        Fill input array with tags.
+    def get_all_tags(self) -> list:
+        """
+        Fetch all tags for repository from Github.
 
-        @return [Array] array of tags in repo
-        '''
+        :return: list of tags in repository
+        :rtype: list
+        """
 
         verbose = self.options.verbose
         gh = self.github
@@ -114,13 +117,13 @@ class Fetcher(object):
         return tags
 
     def fetch_closed_issues_and_pr(self):
-        '''
+        """
         This method fetch all closed issues and separate them to
         pull requests and pure issues (pull request is kind of issue
         in term of GitHub).
 
         @return [Tuple] with (issues, pull-requests)
-        '''
+        """
 
         verbose = self.options.verbose
         gh = self.github
@@ -129,6 +132,7 @@ class Fetcher(object):
         if verbose:
             print("Fetching closed issues and pull requests..")
 
+        data = []
         issues = []
         data = []
         page = 1
@@ -162,11 +166,11 @@ class Fetcher(object):
         return iss, prs
 
     def fetch_closed_pull_requests(self):
-        '''
+        """
         Fetch all pull requests. We need them to detect "merged_at" parameter
 
         @return [Array] all pull requests
-        '''
+        """
 
         pull_requests = []
         verbose = self.options.verbose
@@ -197,7 +201,8 @@ class Fetcher(object):
             page = NextPage(gh)
         if verbose:
             print(".")
-            print("Fetched closed pull requests: {0}".format(len(pull_requests)))
+            print(
+                "Fetched closed pull requests: {0}".format(len(pull_requests)))
         return pull_requests
 
     def get_first_event_date(self):
@@ -214,11 +219,11 @@ class Fetcher(object):
         return None, None
 
     def fetch_events_async(self, issues, label):
-        '''
+        """
         Fetch events for all issues and add them to self.events
 
         @param [Array] issues
-        '''
+        """
         if not issues:
             return issues
         verbose = self.options.verbose
@@ -263,11 +268,11 @@ class Fetcher(object):
             print(".")
 
     def fetch_date_of_tag(self, tag):
-        '''Fetch tag time from repo
+        """Fetch tag time from repo
 
         @param [Hash] tag
         @return [Time] time of specified tag
-        '''
+        """
 
         if self.options.verbose:
             print("Fetching date for tag {0}".format(tag["name"]))
@@ -285,10 +290,10 @@ class Fetcher(object):
         return None
 
     def fetch_commit(self, event):
-        '''
+        """
         Fetch commit for specified event
         @return [Hash]
-        '''
+        """
         gh = self.github
         user = self.options.user
         repo = self.options.project
@@ -301,8 +306,9 @@ class Fetcher(object):
             self.check_returncode(rc, data, gh.getheaders())
         return None
 
-    def check_returncode(self, rc, data, header):
-        hdr =dict(header)
+    @staticmethod
+    def check_returncode(rc, data, header):
+        hdr = dict(header)
         if rc == 403 and hdr.get("x-ratelimit-remaining") == '0':
             # TODO: add auto-retry
             raise GithubApiError(GH_RATE_LIMIT_EXCEEDED_MSG)
@@ -318,9 +324,11 @@ def NextPage(gh):
             sub = subparts[1].split('=')
             if sub[0].strip() == 'rel':
                 if sub[1] == '"next"':
-                    page = int(re.match(r'.*page=(\d+).*',
-                               subparts[0],
-                               re.IGNORECASE | re.DOTALL | re.UNICODE).
-                               groups()[0])
+                    page = int(
+                        re.match(
+                            r'.*page=(\d+).*', subparts[0],
+                            re.IGNORECASE | re.DOTALL | re.UNICODE
+                        ).groups()[0]
+                    )
                     return page
     return 0
