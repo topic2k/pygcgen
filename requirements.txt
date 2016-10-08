@@ -7,4 +7,5 @@ setuptools_scm_git_archive
 twine
 coverage
 codeclimate-test-reporter
-
+sphinx
+recommonmark
