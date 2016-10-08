@@ -11,4 +11,4 @@ install:
 script:
   - pygcgen -t ${ghtoken}
   - coverage run --source pygcgen run-a-test-generation.py
-  - codeclimate-test-reporter --token ${codeclimate-token}
+  - codeclimate-test-reporter
