@@ -7,6 +7,7 @@ Automaticaly generate a changelog based on GitHub issues and pull requests. For 
 [![build status](https://travis-ci.org/topic2k/pygcgen.svg?branch=master)](https://travis-ci.org/topic2k/pygcgen)
 [![Code Climate](https://codeclimate.com/github/topic2k/pygcgen/badges/gpa.svg)](https://codeclimate.com/github/topic2k/pygcgen)
 [![Issue Count](https://codeclimate.com/github/topic2k/pygcgen/badges/issue_count.svg)](https://codeclimate.com/github/topic2k/pygcgen)
+[![Documentation Status](https://readthedocs.org/projects/pygcgen/badge/?version=latest)](http://pygcgen.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation
 
@@ -20,8 +21,8 @@ A command line tool will be installed into the python/Scripts path.
 
 ## Usage
 
-In your repository dir: `pygcgen` or `python -m pygcgen`.
-From elsewhere: `pygcgen -u topic2k -p pygcgen` or `python -m pygcgen -u topic2k -p pygcgen`.
+In your repository root dir: `pygcgen` or `python -m pygcgen`.
+From elsewhere: `pygcgen --user topic2k --project pygcgen` or `pygcgen -u topic2k -p pygcgen`.
 
 
 |Info

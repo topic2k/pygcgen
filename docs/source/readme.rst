@@ -1,10 +1,9 @@
 .. |br| raw:: html
 
-    <br />
-    
-=====
+   <br />
+
 About
-=====
+-----
 
 Automaticaly generate a changelog based on GitHub issues and pull requests. For each tag there will be a section with closed issues and merged pull requests. Also there can be user defined sections based on labels.
 
@@ -25,7 +24,10 @@ Status
 .. image:: https://codeclimate.com/github/topic2k/pygcgen/badges/coverage.svg
    :target: https://codeclimate.com/github/topic2k/pygcgen/coverage
    :alt: Test Coverage
-
+   
+.. image:: https://readthedocs.org/projects/pygcgen/badge/?version=latest
+   :target: http://pygcgen.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
    
    
 Installation
