@@ -24,7 +24,12 @@
 from recommonmark.parser import CommonMarkParser
 import sphinx_rtd_theme
 
+# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 # -- General configuration ------------------------------------------------
+
+
 source_parsers = {
     '.md': CommonMarkParser,
 }
@@ -36,9 +41,10 @@ source_parsers = {
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'sphinx.ext.githubpages',
-]
+if not on_rtd:
+    extensions = [
+        'sphinx.ext.githubpages',
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
