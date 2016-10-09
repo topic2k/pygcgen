@@ -17,7 +17,7 @@ import dateutil.tz
 from dateutil.parser import parse as dateutil_parser
 
 from .fetcher import Fetcher
-from .pygcgen_exceptions import ChangelogGeneratorError
+from .pygcgen_exceptions import ChangelogGeneratorError, GithubApiError
 from .reader import read_changelog
 
 
@@ -111,10 +111,15 @@ class Generator(object):
                 if not issues.index(issue) % 30:
                     print("")
             self.find_closed_date_by_commit(issue)
-            if not issue.get('actual_date', False):
+            if not issue.get('actual_date'):
                 # TODO: don't remove it ???
-                print("\nHELP ME! is it correct to skip #{0} {1}?".format(issue["number"], issue["title"]))
-                issues.remove(issue)
+                print(
+                    "\nHELP ME! is it correct to skip #{0} {1}?".format(
+                        issue["number"], issue["title"]
+                    )
+                )
+                if issue in issues:
+                    issues.remove(issue)
 
         if self.options.verbose:
             print("\nDone.")
@@ -165,8 +170,8 @@ class Generator(object):
         #except UnicodeWarning:
         #    print(commit)
         #    issue['actual_date'] = dt_parser(commit['author']['date'])
-        except ValueError:
-            print("WARNING: Can't fetch commit {0}. "
+        except (ValueError, GithubApiError):
+            print("\nWARNING: Can't fetch commit {0}. "
                   "It is probably referenced from another repo.".
                   format(event['commit_id']))
             issue['actual_date'] = dt_parser(issue['closed_at'])

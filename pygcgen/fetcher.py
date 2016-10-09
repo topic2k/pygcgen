@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 
 try:
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from builtins import range, object
 except ImportError:
     pass
@@ -25,7 +26,7 @@ GH_RATE_LIMIT_EXCEEDED_MSG = \
     "Please provide a token with -t option or in git config."
 NO_TOKEN_PROVIDED = \
     "Warning: No token provided. Neither -t option, git config or variable " \
-    "$CHANGELOG_GITHUB_TOKEN was not found. This script can make only " \
+    "$CHANGELOG_GITHUB_TOKEN found. This script can make only " \
     "50 requests to GitHub API per hour without token!"
 
 
@@ -129,6 +130,7 @@ class Fetcher(object):
             print("Fetching closed issues and pull requests..")
 
         issues = []
+        data = []
         page = 1
         while page > 0:
             if verbose:
@@ -302,6 +304,7 @@ class Fetcher(object):
     def check_returncode(self, rc, data, header):
         hdr =dict(header)
         if rc == 403 and hdr.get("x-ratelimit-remaining") == '0':
+            # TODO: add auto-retry
             raise GithubApiError(GH_RATE_LIMIT_EXCEEDED_MSG)
         raise GithubApiError("({0}) {1}".format(rc, data["message"]))
 
