@@ -28,8 +28,7 @@ base_options = [
     # "--tag-separator", " ---\n\n",
 ]
 
-
-on_travis = os.environ.get('TRAVIS', None) == 'True'
+on_travis = os.environ.get('TRAVIS', None) == 'true'
 if not on_travis:
     ChangelogGenerator(base_options + ["-v"]).run()
 else:
