@@ -7,10 +7,7 @@ import os
 import re
 import subprocess
 import sys
-try:
-    from builtins import object
-except ImportError:
-    pass
+from builtins import object
 from collections import OrderedDict
 
 from .optionsfile_parser import OptionsFileParser
@@ -27,9 +24,23 @@ DEFAULT_OPTIONS = {
     "issue_prefix": "**Closed issues:**",
     "max_issues": sys.maxsize,
     "merge_prefix": "**Merged pull requests:**",
+    "options_file": ".pygcgen",
     "output": "CHANGELOG.md",
     "unreleased_label": "Unreleased",
 }
+
+
+class DebugHelp(argparse.Action):
+    # def __init__(self, option_strings, dest, nargs=None, **kwargs):
+    #     super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        import platform
+        print(self.help)
+        print("\n{} v{}".format(parser.prog, __version__))
+        print("Python", sys.version)
+        print(platform.platform())
+        exit()
 
 
 class OptionsParser(object):
@@ -57,7 +68,7 @@ class OptionsParser(object):
         )
         parser.add_argument(
             "--options-file", metavar="FILE",
-            #default=DEFAULT_OPTIONS["options_file"],
+            default=DEFAULT_OPTIONS["options_file"],
             help="Read options from file. Those will overwrite the ones from "
                  "the command line."
         )
@@ -72,8 +83,7 @@ class OptionsParser(object):
             help="Output file. Default is CHANGELOG.md"
         )
         parser.add_argument(
-            "--no-overwrite",
-            action='store_true',
+            "--no-overwrite", action='store_true',
             help="Don't overwrite the output file if it exists "
                  "(add a number instead)."
         )
@@ -84,46 +94,40 @@ class OptionsParser(object):
         parser.add_argument(
             "-s", "--section", action="append", nargs="*",
             metavar=('PREFIX', 'LABEL'),
-            # metavar='"SECTION PREFIX" "LABEL 1" ["LABEL x" ...]',
-            help="Add a new section to the changelog with the prefix " \
-                 "'PREFIX'. All issues that match one of the LABEL's " \
+            help="Add a new section to the changelog with the prefix "
+                 "'PREFIX'. All issues that match one of the LABEL's "
                  "will be listed in this section."
         )
         parser.add_argument(
-            "--issues-label",
-            dest="issue_prefix",
+            "--issues-label", dest="issue_prefix",
             default=DEFAULT_OPTIONS["issue_prefix"],
             help="Setup custom label for closed-issues section. "
                  "Default is: {0}".format(DEFAULT_OPTIONS["issue_prefix"])
         )
         parser.add_argument(
-            "--header-label",
-            dest="header",
+            "--header-label", dest="header",
             default=DEFAULT_OPTIONS["header"],
             help="Setup custom header label. "
                  "Default is: {0}".format(DEFAULT_OPTIONS["header"])
         )
         parser.add_argument(
-            "--pr-label",
-            dest="merge_prefix",
+            "--pr-label", dest="merge_prefix",
             default=DEFAULT_OPTIONS["merge_prefix"],
             help="Setup custom label for pull requests section. "
                  "Default is: {0}".format(DEFAULT_OPTIONS["merge_prefix"])
         )
         parser.add_argument(
-            "--front-matter", metavar="JSON",
-            dest="frontmatter",
+            "--front-matter", metavar="JSON", dest="frontmatter",
             help="Add YAML front matter. Formatted as JSON because it's "
                  "easier to add on the command line."
         )
         parser.add_argument(
-            "--no-issues",
-            action="store_false", dest='issues',
-            help = "Don't include closed issues in changelog."
+            "--no-issues", action="store_false", dest='issues',
+            help="Don't include closed issues in changelog."
         )
         parser.add_argument(
             "--no-issues-wo-labels",
-            action="store_false", dest="add_issues_wo_labels",
+            action="store_true", dest="add_issues_wo_labels",
             help="Don't include closed issues without labels in changelog."
         )
         parser.add_argument(
@@ -169,19 +173,16 @@ class OptionsParser(object):
                  "Default is: {0}".format(DEFAULT_OPTIONS["unreleased_label"])
         )
         parser.add_argument(
-            "--unreleased-with-date",
-            action='store_true',
+            "--unreleased-with-date", action='store_true',
             help="Add actual date to unreleased label."
         )
         parser.add_argument(
-            "--no-compare-link",
-            action='store_false', dest="compare_link",
+            "--no-compare-link", action='store_false', dest="compare_link",
             help="Don't include compare link (Full Changelog) between older "
                  "version and newer version."
         )
         parser.add_argument(
-            "--include-labels", metavar="LABEL",
-            nargs='*',
+            "--include-labels", metavar="LABEL", nargs='*',
             help="Only issues with the specified labels will be "
                  "included in the changelog."
         )
@@ -190,25 +191,24 @@ class OptionsParser(object):
             nargs='*', default=DEFAULT_OPTIONS["exclude_labels"],
             help="Issues with the specified labels will always be "
                  "excluded from changelog. "
-                 "Default labels: {0}".format(DEFAULT_OPTIONS["exclude_labels"])
+                 "Default labels: {0}".format(
+                DEFAULT_OPTIONS["exclude_labels"]
+            )
         )
         parser.add_argument(
             "--tag-separator",  metavar="SEPARATOR",
             help="The SEPARATOR will be inserted in the log between tags."
         )
         parser.add_argument(
-            "--between-tags",  metavar="TAG",
-            nargs='*', # TODO: nargs=* ?
+            "--between-tags",  metavar="TAG", nargs='*',
             help="Changelog will be filled only between specified tags."
         )
         parser.add_argument(
-            "--exclude-tags", metavar="TAG",
-            nargs='*',
+            "--exclude-tags", metavar="TAG", nargs='*',
             help="Change log will exclude specified tags."
         )
         parser.add_argument(
-            "--exclude-tags-regex",
-            nargs=1,
+            "--exclude-tags-regex", nargs=1,
             help='Apply a regular expression on tag names so that they can be '
             'excluded, for example: --exclude-tags-regex ".*\+\d{1,}"'
         )
@@ -242,8 +242,7 @@ class OptionsParser(object):
             help="The Enterprise Github site on which your project is hosted."
         )
         parser.add_argument(
-            "--simple-list",
-            action='store_true',
+            "--simple-list", action='store_true',
             help="Create simple list from issues and pull requests. "
         )
         parser.add_argument(
@@ -261,27 +260,27 @@ class OptionsParser(object):
             help="If you named the origin of your repo other than origin."
         )
         parser.add_argument(
-            "-v", "--verbose",
-            action='store_true',
+            "-v", "--verbose", action='store_true',
             help="Run verbosely."
         )
         parser.add_argument(
-            "-q", "--quiet",
-            action='store_true',
+            "-q", "--quiet", action='store_true',
             help="Don't output progress information."
         )
         parser.add_argument(
             "--version",
             action='version',
             version="%(prog)s v{0}".format(__version__),
-            # version="%(prog)s {0} (Python {1}\n{2})".format(
-            #     __version__, sys.version, platform.platform()),
             help="Print version number"
+        )
+        parser.add_argument(
+            "--support", action=DebugHelp, nargs="?",
+            help="If you have an issue with pygcgen, got to "
+                 "https://github.com/topic2k/pygcgen/issues and add a "
+                 "new issue. \nAdd this information to your issue discription."
         )
         opts = parser.parse_args(options)
 
-        if not opts.options_file:
-            opts.options_file = ".pygcgen"
         if os.path.exists(opts.options_file):
             OptionsFileParser(options=opts).parse()
         if not opts.user or not opts.project:
@@ -311,15 +310,18 @@ class OptionsParser(object):
             options.project = project
 
     def user_and_project_from_git(self, options, arg0=None, arg1=None):
-        ''' Detects user and project from git. '''
+        """ Detects user and project from git. """
         user, project = self.user_project_from_option(options, arg0, arg1)
         if user and project:
             return user, project
 
         try:
-            remote = subprocess.check_output(['git', 'config', '--get',
-             'remote.{0}.url'.format(options.git_remote)
-            ])
+            remote = subprocess.check_output(
+                [
+                    'git', 'config', '--get',
+                    'remote.{0}.url'.format(options.git_remote)
+                ]
+            )
         except subprocess.CalledProcessError:
             return None, None
         except WindowsError:
@@ -328,13 +330,14 @@ class OptionsParser(object):
         else:
             return self.user_project_from_remote(remote)
 
-    def user_project_from_option(self, options, arg0, arg1):
-        '''
+    @staticmethod
+    def user_project_from_option(options, arg0, arg1):
+        """
         Try to find user and project name from git remote output
 
         @param [String] output of git remote command
         @return [Array] user and project
-        '''
+        """
 
         site = options.github_site
         if arg0 and not arg1:
@@ -354,18 +357,20 @@ class OptionsParser(object):
             return match.groups()
         return None, None
 
-    def user_project_from_remote(self, remote):
-        '''
+    @staticmethod
+    def user_project_from_remote(remote):
+        """
         Try to find user and project name from git remote output
 
         @param [String] output of git remote command
         @return [Array] user and project
-        '''
+        """
 
         # try to find repo in format:
         # origin	git@github.com:skywinder/Github-Changelog-Generator.git (fetch)
         # git@github.com:skywinder/Github-Changelog-Generator.git
-        regex1 = br".*(?:[:/])(?P<user>(-|\w|\.)*)/(?P<project>(-|\w|\.)*)(\.git).*"
+        regex1 = br".*(?:[:/])(?P<user>(-|\w|\.)*)/" \
+                 br"(?P<project>(-|\w|\.)*)(\.git).*"
         match = re.match(regex1, remote)
         if match:
             return match.group("user"), match.group("project")
