@@ -260,7 +260,7 @@ class OptionsParser(object):
             help="If you named the origin of your repo other than origin."
         )
         parser.add_argument(
-            "-v", "--verbose", action='store_true',
+            "-v", "--verbose", action='count',
             help="Run verbosely."
         )
         parser.add_argument(

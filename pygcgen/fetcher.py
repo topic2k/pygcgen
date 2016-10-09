@@ -89,12 +89,12 @@ class Fetcher(object):
         user = self.options.user
         repo = self.options.project
         if verbose:
-            print("Fetching tags..")
+            print("Fetching tags...")
 
         tags = []
         page = 1
         while page > 0:
-            if verbose:
+            if verbose > 2:
                 print(".", end="")
             rc, data = gh.repos[user][repo].tags.get(
                 page=page, per_page=PER_PAGE_NUMBER)
@@ -103,14 +103,16 @@ class Fetcher(object):
             else:
                 self.raise_GitHubError(rc, data, gh.getheaders())
             page = NextPage(gh)
-        if self.options.verbose:
+        if verbose > 2:
             print(".")
 
         if len(tags) == 0:
-            print("Warning: Can't find any tags in repo. Make sure, "
-                  "that you push tags to remote repo via 'git push --tags'")
-        elif verbose:
-            print("Found {0} tag(s)".format(len(tags)))
+            if not self.options.quiet:
+                print("Warning: Can't find any tags in repo. Make sure, that "
+                      "you push tags to remote repo via 'git push --tags'")
+                exit()
+        if verbose > 1:
+            print("Found {} tag(s)".format(len(tags)))
         return tags
 
     def fetch_closed_issues_and_pr(self) -> (list, list):
@@ -128,14 +130,14 @@ class Fetcher(object):
         user = self.options.user
         repo = self.options.project
         if verbose:
-            print("Fetching closed issues and pull requests..")
+            print("Fetching closed issues and pull requests...")
 
         data = []
         issues = []
         data = []
         page = 1
         while page > 0:
-            if verbose:
+            if verbose > 2:
                 print(".", end="")
             rc, data = gh.repos[user][repo].issues.get(
                 page=page, per_page=PER_PAGE_NUMBER,
@@ -149,9 +151,8 @@ class Fetcher(object):
                 break
             page = NextPage(gh)
         self.first_issue = data[-1] if len(data) > 0 else []
-        if verbose:
+        if verbose > 2:
             print(".")
-            print("Received: {0}".format(len(issues)))
 
         # separate arrays of issues and pull requests:
         prs = []
@@ -161,6 +162,10 @@ class Fetcher(object):
                 prs.append(i)
             else:
                 iss.append(i)
+        if verbose > 1:
+            print("\treceived {} issues and  {} pull requests.".format(
+                len(iss), len(prs))
+            )
         return iss, prs
 
     def fetch_closed_pull_requests(self) -> list:
@@ -177,10 +182,10 @@ class Fetcher(object):
         user = self.options.user
         repo = self.options.project
         if verbose:
-            print("Fetching closed pull requests..")
+            print("Fetching closed pull requests...")
         page = 1
         while page > 0:
-            if verbose:
+            if verbose > 2:
                 print(".", end="")
 
             if self.options.release_branch:
@@ -198,10 +203,12 @@ class Fetcher(object):
             else:
                 self.raise_GitHubError(rc, data, gh.getheaders())
             page = NextPage(gh)
-        if verbose:
+        if verbose > 2:
             print(".")
-            print(
-                "Fetched closed pull requests: {0}".format(len(pull_requests)))
+        if verbose > 1:
+            print("\tfetched {} closed pull requests.".format(
+                len(pull_requests))
+            )
         return pull_requests
 
     def fetch_repo_creation_date(self) -> (str, str):
@@ -238,7 +245,9 @@ class Fetcher(object):
         repo = self.options.project
         self.events_cnt = 0
         if verbose:
-            print("events for {0} ... ".format(tag_name))
+            print("fetching events for {} {}... ".format(
+                len(issues), tag_name)
+            )
 
         def worker(issue):
             page = 1
@@ -264,13 +273,13 @@ class Fetcher(object):
                 t = threading.Thread(target=worker, args=(issues[idx],))
                 threads.append(t)
                 t.start()
-                if verbose:
+                if verbose > 2:
                     print(".", end="")
                     if not idx % PER_PAGE_NUMBER:
                         print("")
             for t in threads:
                 t.join()
-        if verbose:
+        if verbose > 2:
             print(".")
 
     def fetch_date_of_tag(self, tag: dict) -> str:
@@ -282,8 +291,8 @@ class Fetcher(object):
         :return: time of specified tag as ISO date string
         """
 
-        if self.options.verbose:
-            print("Fetching date for tag {0}".format(tag["name"]))
+        if self.options.verbose > 1:
+            print("\tFetching date for tag {}".format(tag["name"]))
         gh = self.github
         user = self.options.user
         repo = self.options.project

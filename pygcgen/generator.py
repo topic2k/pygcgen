@@ -52,16 +52,18 @@ class Generator(object):
         self.filtered_tags = []
         self.fetcher = Fetcher(options)
 
-    def fetch_issues_and_pr(self):
+    def fetch_and_filter_issues_and_pr(self):
         issues, pull_requests = self.fetcher.fetch_closed_issues_and_pr()
 
+        if self.options.verbose:
+            print("Filtering issues and pull requests...")
         self.pull_requests = []
         if self.options.include_pull_request:
             self.pull_requests = self.get_filtered_pull_requests(pull_requests)
 
         self.issues = []
         if self.options.issues:
-            self.issues = self.filter_issues_by_labels(issues)
+            self.issues = self.filter_by_labels(issues, "issues")
 
         self.fetch_events_for_issues_and_pr()
         self.issues = self.detect_actual_closed_dates(self.issues, "issues")
@@ -76,11 +78,6 @@ class Generator(object):
         @return [Array] array of fetched issues
         """
 
-        if self.options.verbose:
-            print("Fetching events for issues and PR: {0}".format(
-                len(self.issues) + len(self.pull_requests)
-            ))
-
         # Async fetching events:
         self.fetcher.fetch_events_async(self.issues, "issues")
         self.fetcher.fetch_events_async(self.pull_requests, "pull requests")
@@ -89,7 +86,7 @@ class Generator(object):
         """ Async fetching of all tags dates. """
 
         if self.options.verbose:
-            print("Fetching tag dates (async)...")
+            print("Fetching dates for {} tags...".format(len(self.filtered_tags)))
 
         def worker(tag):
             self.get_time_of_tag(tag)
@@ -107,14 +104,16 @@ class Generator(object):
                                      args=(self.filtered_tags[idx],))
                 threads.append(t)
                 t.start()
-                if self.options.verbose:
+                if self.options.verbose > 2:
                     print(".", end="")
             for t in threads:
                 t.join()
-
-        if self.options.verbose:
-            print("\nFetched tags dates count: {0}".format(
-                len(self.tag_times_dict)))
+        if self.options.verbose > 2:
+            print(".")
+        if self.options.verbose > 1:
+            print("Fetched dates for {} tags.".format(
+                len(self.tag_times_dict))
+            )
 
     def detect_actual_closed_dates(self, issues: list, kind: str) -> list:
         """
@@ -127,23 +126,26 @@ class Generator(object):
         """
 
         if self.options.verbose:
-            print("Fetching closed dates for {0}...".format(kind))
+            print("Fetching closed dates for {} {}...".format(
+                len(issues), kind)
+            )
         all_issues = copy.deepcopy(issues)
         for issue in all_issues:
-            if self.options.verbose:
+            if self.options.verbose > 2:
                 print(".", end="")
                 if not issues.index(issue) % 30:
                     print("")
             self.find_closed_date_by_commit(issue)
             if not issue.get('actual_date', False):
                 # TODO: don't remove it ???
-                print("\nHELP ME! is it correct to skip #{0} {1}?".format(
-                    issue["number"], issue["title"])
-                )
+                if not self.options.quiet:
+                    print("HELP ME! is it correct to skip #{0} {1}?".format(
+                        issue["number"], issue["title"])
+                    )
                 issues.remove(issue)
 
-        if self.options.verbose:
-            print("\nDone.")
+        if self.options.verbose > 2:
+            print(".")
         return all_issues
 
     def find_closed_date_by_commit(self, issue: dict) -> None:
@@ -221,7 +223,7 @@ class Generator(object):
         self.fetch_and_filter_tags()
         tags_sorted = self.sort_tags_by_date(self.filtered_tags)
         self.filtered_tags = tags_sorted
-        self.fetch_issues_and_pr()
+        self.fetch_and_filter_issues_and_pr()
 
         log = str(self.options.frontmatter) \
             if self.options.frontmatter else u""
@@ -392,8 +394,8 @@ class Generator(object):
 
         log = ""
         for index in range(len(self.filtered_tags) - 1):
-            if self.options.verbose:
-                print("\tgenerate log for {0}".format(
+            if self.options.verbose > 1:
+                print("\tgenerate log for {}".format(
                     self.filtered_tags[index]["name"]))
             log2 = self.generate_log_between_tags(
                 self.filtered_tags[index + 1], self.filtered_tags[index])
@@ -417,8 +419,8 @@ class Generator(object):
                     if older < tag_date < newer:
                         older_tag = tag
                         older = tag_date
-            if self.options.verbose:
-                print("\tgenerate log for {0}".format(
+            if self.options.verbose > 1:
+                print("\tgenerate log for {}".format(
                     self.filtered_tags[-1]["name"]))
             log2 = self.generate_log_between_tags(
                 older_tag, self.filtered_tags[-1])
@@ -772,19 +774,21 @@ class Generator(object):
                 filtered_issues.append(issue)
         return filtered_issues
 
-    def filter_issues_by_labels(self, all_issues: List[dict]) -> List[dict]:
+    def filter_by_labels(self, all_issues: List[dict],
+                         kind: str) -> List[dict]:
         """
         Filter issues for include/exclude labels.
 
         :param list(dict) all_issues: All issues.
+        :param str kind: Either "issues" or "pull requests".
         :rtype: list(dict)
         :return: Filtered issues.
         """
 
         filtered_issues = self.include_issues_by_labels(all_issues)
         filtered = self.exclude_issues_by_labels(filtered_issues)
-        if self.options.verbose:
-            print("Filtered issues: {0}".format(len(filtered)))
+        if self.options.verbose > 1:
+            print("\tremaining {}: {}".format(kind, len(filtered)))
         return filtered
 
     def get_filtered_pull_requests(self,
@@ -800,10 +804,10 @@ class Generator(object):
         :return: Filtered pull requests.
         """
 
-        pull_requests = self.filter_issues_by_labels(pull_requests)
+        pull_requests = self.filter_by_labels(pull_requests, "pull requests")
         pull_requests = self.filter_merged_pull_requests(pull_requests)
-        if self.options.verbose:
-            print("Filtered pull requests: {0}".format(len(pull_requests)))
+        if self.options.verbose > 1:
+            print("\tremaining pull requests: {}".format(len(pull_requests)))
         return pull_requests
 
     def filter_merged_pull_requests(self,
@@ -819,7 +823,7 @@ class Generator(object):
         """
 
         if self.options.verbose:
-            print("Fetching merged dates...")
+            print("Fetching merge date for pull requests...")
         closed_pull_requests = self.fetcher.fetch_closed_pull_requests()
 
         if not pull_requests:
