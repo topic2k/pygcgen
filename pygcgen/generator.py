@@ -6,14 +6,9 @@ import copy
 import datetime
 import re
 import threading
-from typing import List, Dict
-
-try:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from builtins import object, range, str
-except ImportError:
-    pass
+from builtins import object, range, str
 from collections import OrderedDict
+from typing import Dict, List
 
 import dateutil.tz
 from dateutil.parser import parse as dateutil_parser
@@ -394,15 +389,7 @@ class Generator(object):
 
         log = ""
         for index in range(len(self.filtered_tags) - 1):
-            if self.options.verbose > 1:
-                print("\tgenerate log for {}".format(
-                    self.filtered_tags[index]["name"]))
-            log2 = self.generate_log_between_tags(
-                self.filtered_tags[index + 1], self.filtered_tags[index])
-            if self.options.tag_separator and log and log2:
-                log = log + self.options.tag_separator + log2
-            else:
-                log += log2
+            log += self.do_generate_log_for_all_tags_part1(log, index)
 
         if self.options.tag_separator and log1:
             log = log1 + self.options.tag_separator + log
@@ -410,25 +397,42 @@ class Generator(object):
             log = log1 + log
 
         if len(self.filtered_tags) != 0:
-            older_tag = {"name": self.get_temp_tag_for_repo_creation()}
-            if self.options.between_tags or self.options.since_tag:
-                older = self.get_time_of_tag(older_tag)
-                newer = self.get_time_of_tag(self.filtered_tags[-1])
-                for tag in self.all_tags:
-                    tag_date = self.get_time_of_tag(tag)
-                    if older < tag_date < newer:
-                        older_tag = tag
-                        older = tag_date
-            if self.options.verbose > 1:
-                print("\tgenerate log for {}".format(
-                    self.filtered_tags[-1]["name"]))
-            log2 = self.generate_log_between_tags(
-                older_tag, self.filtered_tags[-1])
-            if self.options.tag_separator and log and log2:
-                log = log + self.options.tag_separator + log2
-            else:
-                log += log2
+            log += self.do_generate_log_for_all_tags_part2(log)
+
         return log
+
+    def do_generate_log_for_all_tags_part1(self, log, index):
+        if self.options.verbose > 1:
+            print("\tgenerate log for {}".format(
+                self.filtered_tags[index]["name"]))
+        log2 = self.generate_log_between_tags(
+            self.filtered_tags[index + 1], self.filtered_tags[index])
+        if self.options.tag_separator and log and log2:
+            return self.options.tag_separator + log2
+        return log2
+
+    def do_generate_log_for_all_tags_part2(self, log):
+        older_tag = self.last_older_tag()
+        if self.options.verbose > 1:
+            print("\tgenerate log for {}".format(
+                self.filtered_tags[-1]["name"]))
+        log2 = self.generate_log_between_tags(
+            older_tag, self.filtered_tags[-1])
+        if self.options.tag_separator and log and log2:
+            return self.options.tag_separator + log2
+        return log2
+
+    def last_older_tag(self):
+        older_tag = {"name": self.get_temp_tag_for_repo_creation()}
+        if self.options.between_tags or self.options.since_tag:
+            older_tag_date = self.get_time_of_tag(older_tag)
+            newer_tag_date = self.get_time_of_tag(self.filtered_tags[-1])
+            for tag in self.all_tags:
+                tag_date = self.get_time_of_tag(tag)
+                if older_tag_date < tag_date < newer_tag_date:
+                    older_tag = tag
+                    older_tag_date = tag_date
+        return older_tag
 
     def generate_unreleased_section(self) -> str:
         """
