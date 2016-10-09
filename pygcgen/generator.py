@@ -918,11 +918,13 @@ class Generator(object):
             and self.options.future_release:
             newer_tag_name = self.options.future_release
             newer_tag_link = self.options.future_release
-        else:
+        elif tag["name"] is not self.options.unreleased_label :
             # put unreleased label if there is no name for the tag
-            newer_tag_name = tag["name"] if tag \
-                else self.options.unreleased_label
-            newer_tag_link = newer_tag_name if tag else "HEAD"
+            newer_tag_name = tag["name"]
+            newer_tag_link = newer_tag_name
+        else:
+            newer_tag_name = self.options.unreleased_label
+            newer_tag_link = "HEAD"
         return [newer_tag_link, newer_tag_name, newer_tag_time]
 
     def detect_since_tag(self) -> str:
