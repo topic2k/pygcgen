@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from pygcgen import ChangelogGenerator
 
 
-options = [
+base_options = [
+    "--quiet",
     # "-h",
-    "-v",
+    # "-v",
     #"-vv",  # or "-v", "-v",
     #"-vvv",
     # "--options-file", ".pygcgen_example",
@@ -17,23 +20,33 @@ options = [
     # '-s', "**Implemented enhancements:**", "enhancement", "Enhancement",
     # '-s', "**Fixed bugs:**", "bug", "Bug",
     # "-v",
-    # "--quiet",
-    "--no-overwrite",
-    # "--between-tags", "v0.1.1", "v0.2.0",
+    # "--no-overwrite",
     # "--between-tags", "v0.1.1",
-    # "--since-tag", "v0.1.2",
-    # "--due-tag", "v0.2.0",
     # "--include-labels", "bug",
     #"--no-issues-wo-labels",
-    #"--with-unreleased",
+    #
     # "--future-release", "v0.2.0",
-    "--exclude-labels", "duplicate", "Duplicate",
-                        "invalid", "Invalid",
-                        "wontfix", "Wontfix",
-                        "question", "Question",
-                        "hide in changelog",
     # "--tag-separator", " ---\n\n",
 ]
 
-chagen = ChangelogGenerator(options)
-chagen.run()
+ChangelogGenerator(base_options + ["-v"]).run()
+
+on_travis = os.environ.get('TRAVIS', None) == 'True'
+if on_travis:
+    test = [
+        ["--between-tags", "v0.1.1", "v0.2.0"],
+        [
+            "--since-tag", "v0.1.2",
+            "--due-tag", "v0.2.0",
+        ],
+        [
+            "--exclude-labels", "duplicate", "Duplicate",
+                                "invalid", "Invalid",
+                                "wontfix", "Wontfix",
+                                "question", "Question",
+                                "hide in changelog",
+        ],
+        ["--with-unreleased"],
+    ]
+    for options in test:
+        ChangelogGenerator(base_options + options).run()
