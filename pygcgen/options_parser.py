@@ -98,24 +98,20 @@ class OptionsParser(object):
                  "'PREFIX'. All issues that match one of the LABEL's "
                  "will be listed in this section."
         )
-        parser.add_argument(
-            "--issues-label", dest="issue_prefix",
-            default=DEFAULT_OPTIONS["issue_prefix"],
-            help="Setup custom label for closed-issues section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["issue_prefix"])
-        )
-        parser.add_argument(
-            "--header-label", dest="header",
-            default=DEFAULT_OPTIONS["header"],
-            help="Setup custom header label. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["header"])
-        )
-        parser.add_argument(
-            "--pr-label", dest="merge_prefix",
-            default=DEFAULT_OPTIONS["merge_prefix"],
-            help="Setup custom label for pull requests section. "
-                 "Default is: {0}".format(DEFAULT_OPTIONS["merge_prefix"])
-        )
+
+        lst = [
+            ["--header-label", "header", "Setup custom header label."],
+            ["--issues-label", "issue_prefix",
+             "Setup custom label for closed-issues section."],
+            ["--pr-label", "merge_prefix",
+             "Setup custom label for pull requests section."]
+        ]
+        for opt, dest, hlp in lst:
+            parser.add_argument(
+                opt, dest=dest,
+                default=DEFAULT_OPTIONS[dest],
+                help="{} Default is: {}".format(hlp, DEFAULT_OPTIONS[dest])
+            )
         parser.add_argument(
             "--front-matter", metavar="JSON", dest="frontmatter",
             help="Add YAML front matter. Formatted as JSON because it's "
