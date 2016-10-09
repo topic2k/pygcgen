@@ -2,8 +2,4 @@
 
 from .__main__ import ChangelogGenerator
 
-
-if __name__ == "__main__":
-    import sys
-
-    ChangelogGenerator(sys.argv[1:]).run()
+__all__ = ["ChangelogGenerator"]

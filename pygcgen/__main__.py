@@ -12,6 +12,24 @@ from .options_parser import OptionsParser
 from .pygcgen_exceptions import ChangelogGeneratorError
 
 
+def checkname(filename):
+    if not os.path.exists(filename):
+        return filename
+    mtch = re.match(r'(?P<filename>.*?)(?P<nr>\d+)(?P<rest>($|.md)?)',
+                    filename)
+    if mtch:
+        # filename exists, add a number
+        nr = int(mtch.group("nr")) + 1
+        filename = "{0}{1}{2}".format(mtch.group("filename"), nr,
+                                      mtch.group("rest"))
+    else:
+        # filename exists, but doesn't end with a number -> add one.
+        filename = filename.rsplit(".", 1)
+        filename = filename[0] + "_1" + (("." + filename[1]) if
+                                         len(filename) > 1 else "")
+    return checkname(filename)
+
+
 class ChangelogGenerator(object):
     """ Class responsible for whole change log generation cycle. """
 
@@ -49,23 +67,6 @@ class ChangelogGenerator(object):
                 print("Done!")
             return
 
-        def checkname(filename):
-            if not os.path.exists(filename):
-                return filename
-            mtch = re.match(r'(?P<filename>.*?)(?P<nr>\d+)(?P<rest>($|.md)?)',
-                            filename)
-            if mtch:
-                # filename exists, add a number
-                nr = int(mtch.group("nr")) + 1
-                filename = "{0}{1}{2}".format(mtch.group("filename"), nr,
-                                              mtch.group("rest"))
-            else:
-                # filename exists, but doesn't end with a number -> add one.
-                filename = filename.rsplit(".", 1)
-                filename = filename[0] + "_1" + (("." + filename[1]) if
-                                                 len(filename) > 1 else "")
-            return checkname(filename)
-
         if self.options.no_overwrite:
             out = checkname(self.options.output)
         else:
@@ -78,9 +79,7 @@ class ChangelogGenerator(object):
                 fh.write(log)
         if not self.options.quiet:
             print("Done!")
-            print("Generated log placed in {0}/{1}".format(
-                os.getcwd(), out)
-            )
+            print("Generated changelog written to {}".format(out))
 
 
 def run():

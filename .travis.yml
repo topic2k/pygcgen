@@ -10,4 +10,4 @@ install:
 script:
   - pygcgen
   - coverage run --source pygcgen run-a-test-generation.py
-  - codeclimate-test-reporter
+after_success: codeclimate-test-reporter

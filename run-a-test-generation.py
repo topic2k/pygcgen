@@ -29,10 +29,12 @@ base_options = [
 ]
 
 on_travis = os.environ.get('TRAVIS', None) == 'true'
+# on_travis = True
 if not on_travis:
     ChangelogGenerator(base_options + ["-v"]).run()
 else:
     test = [[
+        "--no-overwrite",
         "--section", '**Important changes:**', 'notice',
         "--since-tag", "v0.1.0",
         "--between-tags", "v0.1.1", "v0.2.1",
@@ -40,13 +42,13 @@ else:
         "--exclude-tags-regex", "v0\.0\..*",
         "--exclude-tags", "v0.1.2",
         "--with-unreleased",
+        "--include-labels", "notice", "enhancement", "bug",
         "--exclude-labels",
         "duplicate", "Duplicate",
         "invalid", "Invalid",
         "wontfix", "Wontfix",
         "question", "Question",
         "hide in changelog",
-        "--include-labels", "notice", "enhancement", "bug",
     ]]
     for nr, options in enumerate(test):
         print("starting test {} ...".format(nr), end="", flush=True)
