@@ -580,10 +580,13 @@ class Generator(object):
 
         if not self.options.sections:
             return [sections_a, issues]
-
         for key in self.options.sections:
             sections_a.update({key: []})
+        self.parse_by_sections_for_issues(issues, sections_a, issues_a)
+        self.parse_by_sections_for_pr(pull_requests, sections_a)
+        return [sections_a, issues_a]
 
+    def parse_by_sections_for_issues(self, issues, sections_a, issues_a):
         for section, sect_labels in self.options.sections.items():
             added_issues = []
             for issue in issues:
@@ -599,6 +602,7 @@ class Generator(object):
             for iss in added_issues:
                 issues.remove(iss)
 
+    def parse_by_sections_for_pr(self, pull_requests, sections_a):
         for section, sect_labels in self.options.sections.items():
             added_pull_requests = []
             for pr in pull_requests:
@@ -611,8 +615,6 @@ class Generator(object):
                         continue
             for pr in added_pull_requests:
                 pull_requests.remove(pr)
-
-        return [sections_a, issues_a]
 
     def exclude_issues_by_labels(self, issues: List[dict]) -> List[dict]:
         """
