@@ -24,29 +24,30 @@ base_options = [
     # "--between-tags", "v0.1.1",
     # "--include-labels", "bug",
     #"--no-issues-wo-labels",
-    #
     # "--future-release", "v0.2.0",
     # "--tag-separator", " ---\n\n",
 ]
 
-ChangelogGenerator(base_options + ["-v"]).run()
 
 on_travis = os.environ.get('TRAVIS', None) == 'True'
-if on_travis:
-    test = [
-        ["--between-tags", "v0.1.1", "v0.2.0"],
-        [
-            "--since-tag", "v0.1.2",
-            "--due-tag", "v0.2.0",
-        ],
-        [
-            "--exclude-labels", "duplicate", "Duplicate",
-                                "invalid", "Invalid",
-                                "wontfix", "Wontfix",
-                                "question", "Question",
-                                "hide in changelog",
-        ],
-        ["--with-unreleased"],
-    ]
-    for options in test:
+if not on_travis:
+    ChangelogGenerator(base_options + ["-v"]).run()
+else:
+    test = [[
+        "--section", '**Important changes:**', 'notice',
+        "--since-tag", "v0.1.0",
+        "--between-tags", "v0.1.1", "v0.2.1",
+        "--due-tag", "v0.2.0",
+        "--with-unreleased",
+        "--exclude-labels",
+        "duplicate", "Duplicate",
+        "invalid", "Invalid",
+        "wontfix", "Wontfix",
+        "question", "Question",
+        "hide in changelog",
+        "--include-labels", "notice", "enhancement", "bug",
+    ]]
+    for nr, options in enumerate(test):
+        print("starting test {} ...".format(nr), end="", flush=True)
         ChangelogGenerator(base_options + options).run()
+        print(" done.")
