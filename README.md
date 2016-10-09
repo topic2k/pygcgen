@@ -8,8 +8,9 @@ Automaticaly generate a changelog based on GitHub issues and pull requests. For 
 [![PyPI Version](https://img.shields.io/pypi/v/pygcgen.svg)](https://pypi.python.org/pypi/pygcgen)
 [![PyPI Status](https://img.shields.io/pypi/status/pygcgen.svg)](https://pypi.python.org/pypi/pygcgen)
 [![Travis Build Status](https://travis-ci.org/topic2k/pygcgen.svg?branch=master)](https://travis-ci.org/topic2k/pygcgen)
-[![Code Climate](https://codeclimate.com/github/topic2k/pygcgen/badges/gpa.svg)](https://codeclimate.com/github/topic2k/pygcgen)
-[![Code Climate Issue Count](https://codeclimate.com/github/topic2k/pygcgen/badges/issue_count.svg)](https://codeclimate.com/github/topic2k/pygcgen)
+[![Code Climate Status](https://codeclimate.com/github/topic2k/pygcgen/badges/gpa.svg)](https://codeclimate.com/github/topic2k/pygcgen)
+[![Code Climate Issue Count](https://codeclimate.com/github/topic2k/pygcgen/badges/issue_count.svg)](https://codeclimate.com/github/topic2k/pygcgen/issues)
+[![Test Coverage](https://codeclimate.com/github/topic2k/pygcgen/badges/coverage.svg)](https://codeclimate.com/github/topic2k/pygcgen/coverage)
 [![RTD Documentation Status](https://readthedocs.org/projects/pygcgen/badge/?version=latest)](http://pygcgen.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation

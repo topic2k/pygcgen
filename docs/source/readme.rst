@@ -11,28 +11,32 @@ Status
 ------
 
 .. image:: https://img.shields.io/pypi/pyversions/pygcgen.svg
-    :target: https://pypi.python.org/pypi/pygcgen
+   :target: https://pypi.python.org/pypi/pygcgen
+   :alt: PyPI Python Version
 
 .. image:: https://img.shields.io/pypi/v/pygcgen.svg
-    :target: https://pypi.python.org/pypi/pygcgen
+   :target: https://pypi.python.org/pypi/pygcgen
+   :alt: PyPI Version
 
 .. image:: https://img.shields.io/pypi/status/pygcgen.svg
-    :target: https://pypi.python.org/pypi/pygcgen
+   :target: https://pypi.python.org/pypi/pygcgen
+   :alt: PyPI Status
 
 .. image:: https://travis-ci.org/topic2k/pygcgen.svg?branch=master
-    :target: https://travis-ci.org/topic2k/pygcgen
+   :target: https://travis-ci.org/topic2k/pygcgen
+   :alt: Travis Build Status
 
 .. image:: https://codeclimate.com/github/topic2k/pygcgen/badges/gpa.svg
    :target: https://codeclimate.com/github/topic2k/pygcgen
-   :alt: Code Climate
+   :alt: Code Climate Status
 
 .. image:: https://codeclimate.com/github/topic2k/pygcgen/badges/issue_count.svg
-   :target: https://codeclimate.com/github/topic2k/pygcgen
-   :alt: Issue Count
+   :target: https://codeclimate.com/github/topic2k/pygcgen/issues
+   :alt: Code Climate Issue Count
 
 .. image:: https://codeclimate.com/github/topic2k/pygcgen/badges/coverage.svg
    :target: https://codeclimate.com/github/topic2k/pygcgen/coverage
-   :alt: Test Coverage
+   :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/pygcgen/badge/?version=latest
    :target: http://pygcgen.readthedocs.io/en/latest/?badge=latest
