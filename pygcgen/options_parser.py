@@ -98,7 +98,6 @@ class OptionsParser(object):
                  "'PREFIX'. All issues that match one of the LABEL's "
                  "will be listed in this section."
         )
-
         lst = [
             ["--header-label", "header", "Setup custom header label."],
             ["--issues-label", "issue_prefix",
