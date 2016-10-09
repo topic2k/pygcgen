@@ -64,7 +64,9 @@ class ChangelogGenerator(object):
             exit(1)
         if not log:
             if not self.options.quiet:
-                print("Done!")
+                print("Empty changelog generated. {} not written.".format(
+                    self.options.output)
+                )
             return
 
         if self.options.no_overwrite:
