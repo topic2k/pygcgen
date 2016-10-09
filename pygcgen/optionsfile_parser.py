@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-try:
-    from builtins import object
-except ImportError:
-    pass
+from builtins import object
 
 
 # Pattern to split list options (respecting quotes)
@@ -14,7 +11,7 @@ regex = re.compile(
 
 FILENAME = ".pygcgen"
 KNOWN_INTEGER_KEYS = ["max_issues"]
-KNOWN_ARRAY_KEYS = [ # TODO: umbauen auf dict(key: cnt) # cnt=Anzahl:-1=egal
+KNOWN_ARRAY_KEYS = [
     "between_tags",
     "exclude_labels",
     "exclude_tags"
@@ -48,7 +45,7 @@ BOOL_KEYS = {
     "no_compare_link": False,
     "no_filter_by_milestone": False,
     "no_issues": False,
-    "no_issues_wo_labels": False,
+    "no_issues_wo_labels": True,
     "no_overwrite": True,
     "no_pr_wo_labels": False,
     "no_pull_requests": False,
@@ -96,13 +93,11 @@ class OptionsFileParser(object):
 
     def parse(self):
         # Sets options using configuration file content
-        line_nr = 0
         for line in self.filecontents:
-            line_nr += 1
-            self.parse_line(line, line_nr)
+            self.parse_line(line)
         return self.options
 
-    def parse_line(self, line, line_number):
+    def parse_line(self, line):
         if not line or self.non_configuration_line(line):
             return
         option_name, value = self.extract_pair(line)

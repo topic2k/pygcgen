@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import wx
 
 
@@ -11,6 +10,7 @@ class MainFrame(wx.Frame):
 
     def BuildGui(self):
         pass
+
 
 class GeneratorApp(wx.App):
     pass

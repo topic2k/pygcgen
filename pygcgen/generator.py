@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-
 from __future__ import division, print_function
 
 import copy
 import datetime
 import re
 import threading
+from typing import List, Dict
+
 try:
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from builtins import object, range, str
 except ImportError:
     pass
@@ -16,25 +18,38 @@ from collections import OrderedDict
 import dateutil.tz
 from dateutil.parser import parse as dateutil_parser
 
-from .fetcher import Fetcher
-from .pygcgen_exceptions import ChangelogGeneratorError, GithubApiError
+from .fetcher import Fetcher, REPO_CREATED_TAG_NAME
+from .pygcgen_exceptions import ChangelogGeneratorError
 from .reader import read_changelog
 
 
-REPO_CREATED_KEY = "repo_created_at"
+def timestring_to_datetime(timestring: str) -> datetime:
+    """
+    Convert an ISO formated date and time string to a datetime object.
 
-def dt_parser(timestring):
+    :param str timestring: String with date and time in ISO format.
+    :rtype: datetime
+    :return: datetime object
+    """
     result = dateutil_parser(str(timestring))
     return result
 
 
+# noinspection PyTypeChecker
 class Generator(object):
-    ''' A Generator responsible for all logic, related with
-    change log generation from ready-to-parse issues. '''
+    """
+    A Generator responsible for all logic, related with
+    change log generation from ready-to-parse issues.
+    """
 
     def __init__(self, options):
         self.options = options
         self.tag_times_dict = {}
+        self.issues = []
+        self.issues2 = []
+        self.pull_requests = []
+        self.all_tags = []
+        self.filtered_tags = []
         self.fetcher = Fetcher(options)
 
     def fetch_issues_and_pr(self):
@@ -46,18 +61,20 @@ class Generator(object):
 
         self.issues = []
         if self.options.issues:
-            self.issues = self.get_filtered_issues(issues)
+            self.issues = self.filter_issues_by_labels(issues)
 
         self.fetch_events_for_issues_and_pr()
         self.issues = self.detect_actual_closed_dates(self.issues, "issues")
-        self.pull_requests = self.detect_actual_closed_dates(self.pull_requests, "pull requests")
+        self.pull_requests = self.detect_actual_closed_dates(
+            self.pull_requests, "pull requests"
+        )
 
     def fetch_events_for_issues_and_pr(self):
-        '''
+        """
         Fetch event for issues and pull requests
 
         @return [Array] array of fetched issues
-        '''
+        """
 
         if self.options.verbose:
             print("Fetching events for issues and PR: {0}".format(
@@ -69,7 +86,7 @@ class Generator(object):
         self.fetcher.fetch_events_async(self.pull_requests, "pull requests")
 
     def fetch_tags_dates(self):
-        ''' Async fetching of all tags dates. '''
+        """ Async fetching of all tags dates. """
 
         if self.options.verbose:
             print("Fetching tag dates (async)...")
@@ -99,8 +116,15 @@ class Generator(object):
             print("\nFetched tags dates count: {0}".format(
                 len(self.tag_times_dict)))
 
-    def detect_actual_closed_dates(self, issues, kind):
-        ''' Find correct closed dates, if issues was closed by commits. '''
+    def detect_actual_closed_dates(self, issues: list, kind: str) -> list:
+        """
+        Find correct closed dates, if issues was closed by commits.
+
+        :param list issues: issues to check
+        :param str kind: either "issues" or "pull requests"
+        :rtype: list
+        :return: issues with updated closed dates
+        """
 
         if self.options.verbose:
             print("Fetching closed dates for {0}...".format(kind))
@@ -111,27 +135,24 @@ class Generator(object):
                 if not issues.index(issue) % 30:
                     print("")
             self.find_closed_date_by_commit(issue)
-            if not issue.get('actual_date'):
+            if not issue.get('actual_date', False):
                 # TODO: don't remove it ???
-                print(
-                    "\nHELP ME! is it correct to skip #{0} {1}?".format(
-                        issue["number"], issue["title"]
-                    )
+                print("\nHELP ME! is it correct to skip #{0} {1}?".format(
+                    issue["number"], issue["title"])
                 )
-                if issue in issues:
-                    issues.remove(issue)
+                issues.remove(issue)
 
         if self.options.verbose:
             print("\nDone.")
         return all_issues
 
-    def find_closed_date_by_commit(self, issue):
-        '''
+    def find_closed_date_by_commit(self, issue: dict) -> None:
+        """
         Fill "actual_date" parameter of specified issue by closed date of
         the commit, if it was closed by commit.
 
-        @param [Hash] issue
-        '''
+        :param dict issue: issue to edit
+        """
 
         if not issue.get('events'):
             return
@@ -146,54 +167,56 @@ class Generator(object):
             if event["event"] == compare_string:
                 self.set_date_from_event(event, issue)
                 found_date = True
-                break       #else:
+                break
         if not found_date:
             # TODO: assert issues, that remain without
             #       'actual_date' hash for some reason.
             print("\nWARNING: Issue without 'actual_date':"
-                   " #{0} {1}".format(issue["number"], issue["title"]))
+                  " #{0} {1}".format(issue["number"], issue["title"]))
 
-    def set_date_from_event(self, event, issue):
-        '''
+    def set_date_from_event(self, event: dict, issue: dict) -> None:
+        """
         Set closed date from this issue.
 
-        @param [Hash] event
-        @param [Hash] issue
-        '''
+        :param dict event: event data
+        :param dict issue: issue data
+        """
 
         if not event.get('commit_id', None):
-            issue['actual_date'] = dt_parser(issue['closed_at'])
+            issue['actual_date'] = timestring_to_datetime(issue['closed_at'])
             return
         try:
             commit = self.fetcher.fetch_commit(event)
-            issue['actual_date'] = dt_parser(commit['author']['date'])
-        #except UnicodeWarning:
-        #    print(commit)
-        #    issue['actual_date'] = dt_parser(commit['author']['date'])
-        except (ValueError, GithubApiError):
-            print("\nWARNING: Can't fetch commit {0}. "
+            issue['actual_date'] = timestring_to_datetime(
+                commit['author']['date']
+            )
+        except ValueError:
+            print("WARNING: Can't fetch commit {0}. "
                   "It is probably referenced from another repo.".
                   format(event['commit_id']))
-            issue['actual_date'] = dt_parser(issue['closed_at'])
+            issue['actual_date'] = timestring_to_datetime(issue['closed_at'])
 
-    def encapsulate_string(self, string):
-        '''
+    @staticmethod
+    def encapsulate_string(raw_string: str) -> str:
+        """
         Encapsulate characters to make markdown look as expected.
 
-        @param [String] string
-        @return [String] encapsulated input string
-        '''
+        :param str raw_string: string to encapsulate
+        :rtype: str
+        :return: encapsulated input string
+        """
 
-        string.replace('\\', '\\\\')
-        string = re.sub("([<>*_()\[\]#])", r"\\\1", string)
-        return string
+        raw_string.replace('\\', '\\\\')
+        enc_string = re.sub("([<>*_()\[\]#])", r"\\\1", raw_string)
+        return enc_string
 
-    def compound_changelog(self):
-        '''
+    def compound_changelog(self) -> str:
+        """
         Main function to start change log generation
 
-        @return [String] Generated change log file
-        '''
+        :rtype: str
+        :return: Generated change log file
+        """
 
         self.fetch_and_filter_tags()
         tags_sorted = self.sort_tags_by_date(self.filtered_tags)
@@ -216,12 +239,15 @@ class Generator(object):
             pass
         return log
 
-    def generate_sub_section(self, issues, prefix):
-        '''
-        @param [Array] issues List of issues on sub-section
-        @param [String] prefix Name of sub-section
-        @return [String] Generate ready-to-go sub-section
-        '''
+    def generate_sub_section(self, issues: list, prefix: str) -> str:
+        """
+        Generate formated list of issues for changelog.
+
+        :param list issues: Issues to put in sub-section.
+        :param str prefix: Title of sub-section.
+        :rtype: str
+        :return: Generated ready-to-add sub-section.
+        """
 
         log = ""
         if issues:
@@ -233,23 +259,27 @@ class Generator(object):
             log += "\n"
         return log
 
-    def generate_header(self, newer_tag_name, newer_tag_link, newer_tag_time,
-                        older_tag_link, project_url):
-        '''
-        It generate one header for section with specific parameters.
+    def generate_header(self, newer_tag_name: str, newer_tag_link: str,
+                        newer_tag_time: datetime,
+                        older_tag_link: str, project_url: str) -> str:
+        """
+        Generate a header for a tag section with specific parameters.
 
-        @param [String] newer_tag_name - name of newer tag
-        @param [String] newer_tag_link - used for links. Could be same
-                                         as 'newer_tag_name' or some
-                                         specific value, like HEAD
-        # @param [Time] newer_tag_time - time, when newer tag created
-        # @param [String] older_tag_link - tag name, used for links.
-        # @param [String] project_url - url for current project.
-        # @return [String] - Generate one ready-to-add section.
-        '''
+        :param str newer_tag_name: Name (title) of newer tag.
+        :param str newer_tag_link: Tag name of newer tag, used for links.
+                               Could be same as **newer_tag_name** or some
+                               specific value, like `HEAD`.
+        :param datetime newer_tag_time: Date and time when
+                                        newer tag was created.
+        :param str older_tag_link: Tag name of older tag, used for links.
+        :param str project_url: URL for current project.
+        :rtype: str
+        :return: Generated ready-to-add tag section.
+        """
 
         log = ""
         # Generate date string:
+        # noinspection PyUnresolvedReferences
         time_string = newer_tag_time.strftime(self.options.date_format)
 
         # Generate tag name and link
@@ -268,30 +298,42 @@ class Generator(object):
                    u"({time_string})\n".format(
                         newer_tag_name=newer_tag_name,
                         release_url=release_url,
-                        time_string=time_string)
+                        time_string=time_string
+                   )
 
-        if self.options.compare_link and older_tag_link != REPO_CREATED_KEY:
+        if self.options.compare_link \
+            and older_tag_link != REPO_CREATED_TAG_NAME:
             # Generate compare link
-            log += u"[Full Changelog]({project_url}/compare/{older_tag_link}" \
-                   u"...{newer_tag_link})\n\n".format(
-                project_url=project_url, older_tag_link=older_tag_link,
-                newer_tag_link=newer_tag_link)
+            log += u"[Full Changelog]"
+            log += u"({project_url}/compare/{older_tag_link}".format(
+                project_url=project_url,
+                older_tag_link=older_tag_link,
+            )
+            log += u"...{newer_tag_link})\n\n".format(
+                newer_tag_link=newer_tag_link
+            )
         return log
 
-    def generate_log_between_tags(self, older_tag, newer_tag):
-        '''
-        Generate log only between 2 specified tags
+    def generate_log_between_tags(
+        self, older_tag: dict, newer_tag: dict) -> str:
+        """
+        Generate log between 2 specified tags.
 
-        @param [String] older_tag all issues before this tag date will be
-                                  excluded. May be nil, if it's first tag.
-        @param [String] newer_tag all issue after this tag will be excluded.
-                                  May be nil for unreleased section.
-        '''
+        :param dict older_tag: All issues before this tag's date will be
+                               excluded. May be special value, if new tag is
+                               the first tag. (Means **older_tag** is when
+                               the repo was created.)
+        :param dict newer_tag: All issues after this tag's date  will be
+                               excluded. May be title of unreleased section.
+        :rtype: str
+        :return: Generated ready-to-add tag section for newer tag.
+        """
 
         filtered_issues, filtered_pull_requests = \
             self.filter_issues_for_tags(newer_tag, older_tag)
 
-        older_tag_name = older_tag["name"] if older_tag else self.detect_since_tag()
+        older_tag_name = older_tag["name"] if older_tag \
+            else self.detect_since_tag()
 
         if not filtered_issues and not filtered_pull_requests:
             # do not generate an unreleased section if it would be empty
@@ -300,12 +342,20 @@ class Generator(object):
             filtered_pull_requests, filtered_issues,
             newer_tag, older_tag_name)
 
-    def filter_issues_for_tags(self, newer_tag, older_tag):
-        '''
+    def filter_issues_for_tags(self, newer_tag: dict, older_tag: dict) -> (
+        List[dict], List[dict]):
+        """
         Apply all filters to issues and pull requests.
 
-        @return [Array] filtered issues and pull requests
-        '''
+        :param dict older_tag: All issues before this tag's date will be
+                               excluded. May be special value, if new tag is
+                               the first tag. (Means **older_tag** is when
+                               the repo  was created.)
+        :param dict newer_tag: All issues after this tag's date  will be
+                               excluded. May be title of unreleased section.
+        :rtype: list(dict), list(dict)
+        :return: Filtered issues and pull requests.
+        """
 
         filtered_pull_requests = self.delete_by_time(self.pull_requests,
                                                      older_tag, newer_tag)
@@ -317,17 +367,20 @@ class Generator(object):
         if self.options.filter_issues_by_milestone:
             # delete excess irrelevant issues (according milestones).Issue #22.
             filtered_issues = self.filter_by_milestone(
-                filtered_issues, newer_tag_name, self.issues)
+                filtered_issues, newer_tag_name, self.issues
+            )
             filtered_pull_requests = self.filter_by_milestone(
-                filtered_pull_requests, newer_tag_name, self.pull_requests)
+                filtered_pull_requests, newer_tag_name, self.pull_requests
+            )
         return filtered_issues, filtered_pull_requests
 
-    def generate_log_for_all_tags(self):
-        '''
-        The full cycle of generation for whole project
+    def generate_log_for_all_tags(self) -> str:
+        """
+        The full cycle of generation for whole project.
 
-        @return [String] The complete change log
-        '''
+        :rtype: str
+        :return: The complete change log for released tags.
+        """
 
         if self.options.verbose:
             print("Generating log...")
@@ -338,7 +391,7 @@ class Generator(object):
             log1 = self.generate_unreleased_section()
 
         log = ""
-        for index in range(len(self.filtered_tags)-1):
+        for index in range(len(self.filtered_tags) - 1):
             if self.options.verbose:
                 print("\tgenerate log for {0}".format(
                     self.filtered_tags[index]["name"]))
@@ -375,7 +428,13 @@ class Generator(object):
                 log += log2
         return log
 
-    def generate_unreleased_section(self):
+    def generate_unreleased_section(self) -> str:
+        """
+        Generate log for unreleased closed issues.
+
+        :rtype: str
+        :return: Generated ready-to-add unreleased section.
+        """
         if not self.filtered_tags:
             return ""
         now = datetime.datetime.utcnow()
@@ -386,30 +445,43 @@ class Generator(object):
             self.filtered_tags[0], head_tag)
         return unreleased_log
 
-    def get_string_for_issue(self, issue):
-        '''
+    def get_string_for_issue(self, issue: dict) -> str:
+        """
         Parse issue and generate single line formatted issue line.
-        Example output:
-        - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) ([skywinder](https://github.com/skywinder))
-        - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) (@skywinder)
 
-        @param [Hash] issue Fetched issue from GitHub
-        @return [String] Markdown-formatted single issue
-        '''
+        Example output:
+            - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) ([skywinder](https://github.com/skywinder))
+            - Add coveralls integration [\#223](https://github.com/skywinder/github-changelog-generator/pull/223) (@skywinder)
+
+
+        :param dict issue: Fetched issue from GitHub.
+        :rtype: str
+        :return: Markdown-formatted single issue.
+        """
 
         encapsulated_title = self.encapsulate_string(issue['title'])
         try:
             title_with_number = u"{0} [\\#{1}]({2})".format(
-            encapsulated_title, issue["number"], issue["html_url"])
+                encapsulated_title, issue["number"], issue["html_url"]
+            )
         except UnicodeEncodeError:
             # TODO: why did i add this? Is it needed?
-            print(encapsulated_title)
-            print(issue["number"])
-            print(issue["html_url"])
-            title_with_number = "ERROR ERROR ERROR"
+            title_with_number = "ERROR ERROR ERROR: #{0} {1}".format(
+                issue["number"], issue['title']
+            )
+            print(title_with_number, '\n', issue["html_url"])
         return self.issue_line_with_user(title_with_number, issue)
 
-    def issue_line_with_user(self, line, issue):
+    def issue_line_with_user(self, line: str, issue: dict) -> str:
+        """
+        If option author is enabled, a link to the profile of the author
+        of the pull reqest will be added to the issue line.
+
+        :param str line: String containing a markdown-formatted single issue.
+        :param dict issue: Fetched issue from GitHub.
+        :rtype: str
+        :return: Issue line with added author link.
+        """
         if not issue.get("pull_request") or not self.options.author:
             return line
 
@@ -425,19 +497,24 @@ class Generator(object):
             )
         return line
 
-    def generate_log_for_tag(self, pull_requests, issues,
-                             newer_tag, older_tag_name=None):
-        '''
-        Generates log for section with header and body.
+    def generate_log_for_tag(self,
+                             pull_requests: List[dict],
+                             issues: List[dict],
+                             newer_tag: dict,
+                             older_tag_name: str) -> str:
+        """
+        Generates log for tag section with header and body.
 
-        @param [Array] pull_requests List or PR's in new section
-        @param [Array] issues List of issues in new section
-        @param [String] newer_tag Name of the newer tag.
-                                  Could be nil for `Unreleased` section
-        @param [String] older_tag_name Older tag, used for the links.
-                                       Could be nil for last tag.
-        @return [String] Ready and parsed section
-        '''
+        :param list(dict) pull_requests: List of PR's in this tag section.
+        :param list(dict) issues: List of issues in this tag section.
+        :param dict newer_tag: Github data of tag for this section.
+        :param str older_tag_name: Older tag, used for the links.
+                                   May be special value, if **newer tag** is
+                                   the first tag. (Means **older_tag** is when
+                                   the repo was created.)
+        :rtype: str
+        :return: Ready-to-add and parsed tag section.
+        """
 
         newer_tag_link, newer_tag_name, \
         newer_tag_time = self.detect_link_tag_time(newer_tag)
@@ -453,17 +530,21 @@ class Generator(object):
             log += self.issues_to_log(issues, pull_requests)
         if self.options.include_pull_request:
             # Generate pull requests:
-            log += self.generate_sub_section(pull_requests, self.options.merge_prefix)
+            log += self.generate_sub_section(
+                pull_requests, self.options.merge_prefix
+            )
         return log
 
-    def issues_to_log(self, issues, pull_requests):
-        '''
+    def issues_to_log(self, issues: List[dict],
+                      pull_requests: List[dict]) -> str:
+        """
         Generate ready-to-paste log from list of issues and pull requests.
 
-        @param [Array] issues
-        @param [Array] pull_requests
-        @return [String] generated log for issues
-        '''
+        :param list(dict) issues: List of issues in this tag section.
+        :param list(dict) pull_requests: List of PR's in this tag section.
+        :rtype: str
+        :return: Generated log for issues and pull requests.
+        """
 
         log = ""
         sections_a, issues_a = self.parse_by_sections(
@@ -474,15 +555,19 @@ class Generator(object):
         log += self.generate_sub_section(issues_a, self.options.issue_prefix)
         return log
 
-    def parse_by_sections(self, issues, pull_requests):
-        '''
-        This method sort issues by types (bugs, features, or
+    def parse_by_sections(self,
+                          issues: List[dict],
+                          pull_requests: List[dict]
+                          ) -> (Dict[str, List[dict]], List[dict]):
+        """
+        This method sort issues by types (bugs, features, etc. or
         just closed issues) by labels.
 
-        @param [Array] issues
-        @param [Array] pull_requests
-        @return [Array] tuple of filtered arrays: (Bugs, Enhancements Issues)
-        '''
+        :param list(dict) issues: List of issues in this tag section.
+        :param list(dict) pull_requests: List of PR's in this tag section.
+        :rtype: dict(list(dict)), list(dict)
+        :return: Issues and PR's sorted into sections.
+        """
 
         issues_a = []
         sections_a = OrderedDict()
@@ -523,13 +608,14 @@ class Generator(object):
 
         return [sections_a, issues_a]
 
-    def exclude_issues_by_labels(self, issues):
-        '''
-        Delete all labels with labels from self.options.exclude_labels array.
+    def exclude_issues_by_labels(self, issues: List[dict]) -> List[dict]:
+        """
+        Delete all issues with labels from exclude-labels option.
 
-        # @param [Array] issues
-        # @return [Array] filtered array
-        '''
+        :param list(dict) issues: All issues for tag.
+        :rtype: list(dict)
+        :return: Filtered issues.
+        """
         if not self.options.exclude_labels:
             return copy.deepcopy(issues)
 
@@ -546,10 +632,15 @@ class Generator(object):
                 include_issues.append(issue)
         return include_issues
 
-    def filter_by_milestone(self, filtered_issues, tag_name, all_issues):
-        '''
-        @return [Array] filtered issues according milestone
-        '''
+    def filter_by_milestone(self, filtered_issues: List[dict], tag_name: str,
+                            all_issues: List[dict]) -> List[dict]:
+        """
+        :param list(dict) filtered_issues: Filtered issues.
+        :param str tag_name: Name (title) of tag.
+        :param list(dict) all_issues: All issues.
+        :rtype: list(dict)
+        :return: Filtered issues according milestone.
+        """
 
         filtered_issues = self.remove_issues_in_milestones(filtered_issues)
         if tag_name:
@@ -558,14 +649,17 @@ class Generator(object):
             filtered_issues.extend(issues_to_add)
         return filtered_issues
 
-    def find_issues_to_add(self, all_issues, tag_name):
-        '''
-        Add all issues, that should be in that tag, according milestone
+    @staticmethod
+    def find_issues_to_add(all_issues: List[dict],
+                           tag_name: str) -> List[dict]:
+        """
+        Add all issues, that should be in that tag, according to milestone.
 
-        @param [Array] all_issues
-        @param [String] tag_name
-        @return [Array] issues with milestone #tag_name
-        '''
+        :param list(dict) all_issues: All issues.
+        :param str tag_name: Name (title) of tag.
+        :rtype: List[dict]
+        :return: Issues filtered by milestone.
+        """
 
         filtered = []
         for issue in all_issues:
@@ -575,11 +669,14 @@ class Generator(object):
                     filtered.append(iss)
         return filtered
 
-    def remove_issues_in_milestones(self, filtered_issues):
-        '''
-        @return [Array] array with removed issues, that contain
-                        milestones with same name as a tag
-        '''
+    def remove_issues_in_milestones(
+        self, filtered_issues: List[dict]) -> List[dict]:
+        """
+        :param list(dict) filtered_issues: Filtered issues.
+        :rtype: list(dict)
+        :return: List with removed issues, that contain milestones with
+                 same name as a tag.
+        """
         for issue in filtered_issues:
             # leave issues without milestones
             if issue["milestone"]:
@@ -589,18 +686,23 @@ class Generator(object):
                         filtered_issues.remove(issue)
         return filtered_issues
 
-    def delete_by_time(self, issues, older_tag=None, newer_tag=None):
-        '''
-        Method filter issues, that belong only specified tag range.
+    def delete_by_time(self,
+                       issues: List[dict],
+                       older_tag: dict,
+                       newer_tag: dict) -> List[dict]:
+        """
+        Filter issues that belong to specified tag range.
 
-        @param [Array]  issues issues to filter
-        @param [Symbol] hash_key key of date value default is :actual_date
-        @param [String] older_tag all issues before this tag date will
-                                  be excluded. May be nil, if it's first tag
-        @param [String] newer_tag all issue after this tag will be excluded.
-                                  May be nil for unreleased section
-        @return [Array] filtered issues
-        '''
+        :param list(dict) issues: Issues to filter.
+        :param dict older_tag: All issues before this tag's date will be
+                               excluded. May be special value, if **newer_tag**
+                               is the first tag. (Means **older_tag** is when
+                               the repo was created.)
+        :param dict newer_tag: All issues after this tag's date  will be
+                               excluded. May be title of unreleased section.
+        :rtype: list(dict)
+        :return: Filtered issues.
+        """
 
         if not older_tag and not newer_tag:
             # in case if no tags are specified - return unchanged array
@@ -616,25 +718,14 @@ class Generator(object):
                     filtered.append(copy.deepcopy(issue))
         return filtered
 
-    def tag_older_new_tag(self, newer_tag_time, time):
-        if not newer_tag_time:
-            return True
-        tag_time = dt_parser(newer_tag_time)
-        return time <= tag_time
-
-    def tag_newer_old_tag(self, older_tag_time, time):
-        if not older_tag_time:
-            return True
-        tag_time = dt_parser(older_tag_time)
-        return time > tag_time
-
-    def include_issues_by_labels(self, all_issues):
-        '''
+    def include_issues_by_labels(self, all_issues: List[dict]) -> List[dict]:
+        """
         Include issues with labels, specified in self.options.include_labels.
 
-        @param [Array] issues to filter
-        @return [Array] filtered array of issues
-        '''
+        :param list(dict) all_issues: All issues.
+        :rtype: list(dict)
+        :return: Filtered issues.
+        """
 
         included_by_labels = self.filter_by_include_labels(all_issues)
         wo_labels = self.filter_wo_labels(all_issues)
@@ -646,79 +737,86 @@ class Generator(object):
                 filtered_issues.append(issue)
         return filtered_issues
 
-    def filter_wo_labels(self, all_issues):
-        '''
-        @return [Array] issues without labels or empty array
-                        if add_issues_wo_labels is false
-        '''
+    def filter_wo_labels(self, all_issues: List[dict]) -> List[dict]:
+        """
+        Filter all issues that don't have a label.
+
+        :rtype: list(dict)
+        :return: Issues without labels.
+        """
 
         issues_wo_labels = []
-        if self.options.add_issues_wo_labels:
+        if not self.options.add_issues_wo_labels:
             for issue in all_issues:
                 if not issue['labels']:
                     issues_wo_labels.append(issue)
         return issues_wo_labels
 
-    def filter_by_include_labels(self, issues):
-        ''' Include issues with labels, specified in include_labels. '''
+    def filter_by_include_labels(self, issues: List[dict]) -> List[dict]:
+        """
+        Filter issues to include only issues with labels
+        specified in include_labels.
+
+        :param list(dict) issues: Pre-filtered issues.
+        :rtype: list(dict)
+        :return: Filtered issues.
+        """
 
         if not self.options.include_labels:
             return copy.deepcopy(issues)
         filtered_issues = []
         include_labels = set(self.options.include_labels)
         for issue in issues:
-            labels = [label.name for label in issue.labels]
+            labels = [label["name"] for label in issue["labels"]]
             if include_labels.intersection(labels):
                 filtered_issues.append(issue)
         return filtered_issues
 
-    def filter_array_by_labels(self, all_issues):
-        '''
-        General filter function.
+    def filter_issues_by_labels(self, all_issues: List[dict]) -> List[dict]:
+        """
+        Filter issues for include/exclude labels.
 
-        @param [Array] all_issues
-        @return [Array] filtered issues
-        '''
+        :param list(dict) all_issues: All issues.
+        :rtype: list(dict)
+        :return: Filtered issues.
+        """
 
         filtered_issues = self.include_issues_by_labels(all_issues)
         filtered = self.exclude_issues_by_labels(filtered_issues)
+        if self.options.verbose:
+            print("Filtered issues: {0}".format(len(filtered)))
         return filtered
 
-    def get_filtered_issues(self, issues):
-        '''
-        Filter issues according labels.
-
-        # @return [Array] Filtered issues
-        '''
-
-        issues = self.filter_array_by_labels(issues)
-        if self.options.verbose:
-            print("Filtered issues: {0}".format(len(issues)))
-        return issues
-
-    def get_filtered_pull_requests(self, pull_requests):
-        '''
+    def get_filtered_pull_requests(self,
+                                   pull_requests: List[dict]) -> List[dict]:
+        """
         This method fetches missing params for PR and filter them
         by specified options. It include add all PR's with labels
-        from options.include_labels array
-        And exclude all from options.exclude_labels array.
+        from options.include_labels and exclude all from
+        options.exclude_labels.
 
-        @return [Array] filtered PR's
-        '''
+        :param list(dict) pull_requests: All pull requests.
+        :rtype: list(dict)
+        :return: Filtered pull requests.
+        """
 
-        pull_requests = self.filter_array_by_labels(pull_requests)
+        pull_requests = self.filter_issues_by_labels(pull_requests)
         pull_requests = self.filter_merged_pull_requests(pull_requests)
         if self.options.verbose:
             print("Filtered pull requests: {0}".format(len(pull_requests)))
         return pull_requests
 
-    def filter_merged_pull_requests(self, pull_requests):
-        '''
-        This method filter only merged PR and
-        fetch missing required attributes for pull requests:
-        "merged_at" - is a date, when issue PR was merged.
-        More correct to use merged date, rather than closed date.
-        '''
+    def filter_merged_pull_requests(self,
+                                    pull_requests: List[dict]) -> List[dict]:
+        """
+        This method filter only merged PR and fetch missing required
+        attributes for pull requests. Using merged date is more correct
+        than closed date.
+
+        :param list(dict) pull_requests: Pre-filtered pull requests.
+        :rtype: list(dict)
+        :return:
+        """
 
         if self.options.verbose:
             print("Fetching merged dates...")
@@ -738,19 +836,26 @@ class Generator(object):
 
         for pr in pulls:
             if not pr.get('merged_at'):
-                # TODO: not sure if i do the right thing
                 pulls.remove(pr)
         return pulls
 
-    def fetch_and_filter_tags(self):
-        ''' fetch, filter tags, fetch dates and sort them in time order. '''
+    def fetch_and_filter_tags(self) -> None:
+        """
+        Fetch and filter tags, fetch dates and sort them in time order.
+        """
 
         self.all_tags = self.fetcher.get_all_tags()
         self.filtered_tags = self.get_filtered_tags(self.all_tags)
         self.fetch_tags_dates()
 
-    def sort_tags_by_date(self, tags):
-        ''' Sort all tags by date. '''
+    def sort_tags_by_date(self, tags: List[dict]) -> List[dict]:
+        """
+        Sort all tags by date.
+
+        :param list(dict) tags: All tags.
+        :rtype: list(dict)
+        :return: Sorted list of tags.
+        """
 
         if self.options.verbose:
             print("Sorting tags...")
@@ -758,14 +863,14 @@ class Generator(object):
         tags.reverse()
         return tags
 
-    def get_time_of_tag(self, tag):
-        '''
-        Try to find tag date in local hash.
-        Otherwise fFetch tag time and put it to local hash file.
+    def get_time_of_tag(self, tag: dict) -> datetime:
+        """
+        Get date and time for tag, fetching it if not already cached.
 
-        @param [Hash] tag name of the tag
-        @return [Time] time of specified tag
-        '''
+        :param dict tag: Tag to get the datetime for.
+        :rtype: datetime
+        :return: datetime for specified tag.
+        """
 
         if not tag:
             raise ChangelogGeneratorError("tag is nil")
@@ -777,63 +882,87 @@ class Generator(object):
         else:
             time_string = self.fetcher.fetch_date_of_tag(tag)
             try:
-                self.tag_times_dict[name_of_tag] = dt_parser(time_string)
+                self.tag_times_dict[name_of_tag] = \
+                    timestring_to_datetime(time_string)
             except UnicodeWarning:
-                print(tag)
-                self.tag_times_dict[name_of_tag] = dt_parser(time_string)
+                print("ERROR ERROR:", tag)
+                self.tag_times_dict[name_of_tag] = \
+                    timestring_to_datetime(time_string)
             return self.tag_times_dict[name_of_tag]
 
-    def detect_link_tag_time(self, newer_tag):
-        ''' Detect link, name and time for specified tag.
+    def detect_link_tag_time(self, tag: dict) -> (str, str, datetime):
+        """
+        Detect link, name and time for specified tag.
 
-        @param [Hash] newer_tag newer tag. Can be nil,
-                                if it's Unreleased section.
-        @return [Array] link, name and time of the tag
-        '''
+        :param dict tag: Tag data.
+        :rtype: str, str, datetime
+        :return: Link, name and time of the tag.
+        """
 
         # if tag is nil - set current time
-        newer_tag_time = self.get_time_of_tag(newer_tag) if newer_tag \
+        newer_tag_time = self.get_time_of_tag(tag) if tag \
             else datetime.datetime.now()
 
         # if it's future release tag - set this value
-        if newer_tag["name"] == self.options.unreleased_label and self.options.future_release:
+        if tag["name"] == self.options.unreleased_label \
+            and self.options.future_release:
             newer_tag_name = self.options.future_release
             newer_tag_link = self.options.future_release
         else:
             # put unreleased label if there is no name for the tag
-            newer_tag_name = newer_tag["name"] if newer_tag \
+            newer_tag_name = tag["name"] if tag \
                 else self.options.unreleased_label
-            newer_tag_link = newer_tag_name if newer_tag else "HEAD"
+            newer_tag_link = newer_tag_name if tag else "HEAD"
         return [newer_tag_link, newer_tag_name, newer_tag_time]
 
-    def detect_since_tag(self):
-        '''
-        @return [Object] try to find newest tag using Reader()
-        and options.base if specified, otherwise returns nil
-        '''
+    def detect_since_tag(self) -> str:
+        """
+        Try to find tag name to use as older tag for range of log creation.
+
+        :rtype: str
+        :return: Tag name to use as 'oldest' tag. May be special value,
+                 indicating the creation of the repo.
+        """
         return self.options.since_tag or self.version_of_first_item()
 
-    def version_of_first_item(self):
+    def version_of_first_item(self) -> str:
+        """
+        Try to detect the newest tag from self.options.base, otherwise
+        return a special value indicating the creation of the repo.
+
+        :rtype: str
+        :return: Tag name to use as 'oldest' tag. May be special value,
+                 indicating the creation of the repo.
+        """
         try:
-            sections = read_changelog(self.options.base)
+            sections = read_changelog(self.options)
             return sections[0]["version"]
         except(IOError, TypeError):
-            self.get_temp_tag_for_repo_creation()
+            return self.get_temp_tag_for_repo_creation()
 
-    def get_temp_tag_for_repo_creation(self):
-        tag_date = self.tag_times_dict.get(REPO_CREATED_KEY, None)
+    def get_temp_tag_for_repo_creation(self) -> str:
+        """
+        If not already cached, fetch the creation date of the repo, cache it
+        and return the special value indicating the creation of the repo.
+
+        :rtype: str
+        :return: value indicating the creation
+        """
+        tag_date = self.tag_times_dict.get(REPO_CREATED_TAG_NAME, None)
         if not tag_date:
-            tag_name, tag_date = self.fetcher.get_first_event_date()
-            self.tag_times_dict[tag_name] = dt_parser(tag_date)
-        return REPO_CREATED_KEY
+            tag_name, tag_date = self.fetcher.fetch_repo_creation_date()
+            self.tag_times_dict[tag_name] = timestring_to_datetime(tag_date)
+        return REPO_CREATED_TAG_NAME
 
-    def get_filtered_tags(self, all_tags):
-        '''
+    def get_filtered_tags(self, all_tags: List[dict]) -> List[dict]:
+        """
         Return tags after filtering tags in lists provided by
         option: --between-tags & --exclude-tags
 
-        @return [Array]
-        '''
+        :param list(dict) all_tags: All tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
 
         filtered_tags = self.filter_since_tag(all_tags)
         if self.options.between_tags:
@@ -842,14 +971,17 @@ class Generator(object):
             filtered_tags = self.filter_due_tag(filtered_tags)
         return self.filter_excluded_tags(filtered_tags)
 
-    def filter_since_tag(self, all_tags):
-        '''
-        @param [Array] all_tags all tags
-        @return [Array] filtered tags according :since_tag option
-        '''
+    def filter_since_tag(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according since_tag option.
+
+        :param list(dict) all_tags: All tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
 
         tag = self.detect_since_tag()
-        if not tag or tag == REPO_CREATED_KEY:
+        if not tag or tag == REPO_CREATED_TAG_NAME:
             return copy.deepcopy(all_tags)
 
         filtered_tags = []
@@ -868,11 +1000,14 @@ class Generator(object):
                 filtered_tags.append(t)
         return filtered_tags
 
-    def filter_due_tag(self, all_tags):
-        '''
-        @param [Array] all_tags all tags
-        @return [Array] filtered tags according due_tag option
-        '''
+    def filter_due_tag(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according due_tag option.
+
+        :param list(dict) all_tags: Pre-filtered tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
 
         filtered_tags = []
         tag = self.options.due_tag
@@ -891,11 +1026,14 @@ class Generator(object):
                 filtered_tags.append(t)
         return filtered_tags
 
-    def filter_between_tags(self, all_tags):
-        '''
-        @param [Array] all_tags all tags
-        @return [Array] filtered tags according :between_tags option
-        '''
+    def filter_between_tags(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according between_tags option.
+
+        :param list(dict) all_tags: Pre-filtered tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
 
         tag_names = [t["name"] for t in all_tags]
         between_tags = []
@@ -925,36 +1063,45 @@ class Generator(object):
             between_tags.pop(0)
         return between_tags
 
-    def filter_excluded_tags(self, all_tags):
-        '''
-        @param [Array] all_tags all tags
-        @return [Array] filtered tags according exclude_tags or
-                        exclude_tags_regex option
-        '''
+    def filter_excluded_tags(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according exclude_tags and exclude_tags_regex option.
 
+        :param list(dict) all_tags: Pre-filtered tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
+        filtered_tags = copy.deepcopy(all_tags)
         if self.options.exclude_tags:
-            return self.apply_exclude_tags(all_tags)
-        elif self.options.exclude_tags_regex:
-            return self.apply_exclude_tags_regex(all_tags)
-        return all_tags
+            filtered_tags = self.apply_exclude_tags(filtered_tags)
+        if self.options.exclude_tags_regex:
+            filtered_tags = self.apply_exclude_tags_regex(filtered_tags)
+        return filtered_tags
 
-    def apply_exclude_tags(self, all_tags):
-        return self.filter_exact_tags(all_tags)
+    def apply_exclude_tags_regex(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according exclude_tags_regex option.
 
-    def apply_exclude_tags_regex(self, all_tags):
-        return self.filter_tags_with_regex(
-            all_tags, self.options.exclude_tags_regex)
-
-    def filter_tags_with_regex(self, all_tags, regex):
+        :param list(dict) all_tags: Pre-filtered tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
         filtered = []
         for tag in all_tags:
-            if not re.match(regex, tag["name"]):
+            if not re.match(self.options.exclude_tags_regex, tag["name"]):
                 filtered.append(tag)
         if len(all_tags) == len(filtered):
             self.warn_if_nonmatching_regex()
         return filtered
 
-    def filter_exact_tags(self, all_tags):
+    def apply_exclude_tags(self, all_tags: List[dict]) -> List[dict]:
+        """
+        Filter tags according exclude_tags option.
+
+        :param list(dict) all_tags: Pre-filtered tags.
+        :rtype: list(dict)
+        :return: Filtered tags.
+        """
         filtered = copy.deepcopy(all_tags)
         for tag in all_tags:
             if tag["name"] not in self.options.exclude_tags:
@@ -964,11 +1111,16 @@ class Generator(object):
         return filtered
 
     def warn_if_nonmatching_regex(self):
-        print("WARNING: unable to reject any tag, using regex "
+        print(
+            "WARNING: unable to reject any tag, using regex "
             "'{0}' in --exclude-tags-regex option.".format(
-                self.options.exclude_tags_regex))
+                self.options.exclude_tags_regex
+            )
+        )
 
-    def warn_if_tag_not_found(self, tag, option):
-        print("WARNING: can't find tag '{0}' specified with "
-            "--{1} option.".format(tag, option))
-
+    @staticmethod
+    def warn_if_tag_not_found(tag, option):
+        print(
+            "WARNING: can't find tag '{0}' specified with "
+            "--{1} option.".format(tag, option)
+        )
