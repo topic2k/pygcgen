@@ -2,19 +2,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-try:
-    # noinspection PyCompatibility,PyUnresolvedReferences
-    from builtins import range, object
-except ImportError:
-    pass
 import os
 import re
 import subprocess
 import threading
+from builtins import object, range
+
 from agithub.GitHub import GitHub
 
 from .pygcgen_exceptions import GithubApiError
+
 
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
 PER_PAGE_NUMBER = 100

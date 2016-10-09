@@ -5,11 +5,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-
-try:
-    from builtins import object
-except ImportError:
-    pass
+from builtins import object
 
 from .generator import Generator
 from .options_parser import OptionsParser
@@ -20,20 +16,20 @@ class ChangelogGenerator(object):
     """ Class responsible for whole change log generation cycle. """
 
     def __init__(self, options=None):
-        '''
+        """
         :type options: list
         :param options: command line arguments
-        '''
+        """
 
         self.options = OptionsParser(options).options
         self.generator = Generator(self.options)
 
     def run(self):
-        '''
+        """
         The entry point of this script to generate change log
         'ChangelogGeneratorError' Is thrown when one
         of the specified tags was not found in list of tags.
-        '''
+        """
         if not self.options.project or not self.options.user:
             print("Project and/or user missing. "
                   "For help run:\n  pygcgen --help")
@@ -42,11 +38,16 @@ class ChangelogGenerator(object):
         if not self.options.quiet:
             print("Generating changelog...")
 
+        log = None
         try:
             log = self.generator.compound_changelog()
-        except (ChangelogGeneratorError) as err:
+        except ChangelogGeneratorError as err:
             print("\n\033[91m\033[1m{}\x1b[0m".format(err.args[0]))
             exit(1)
+        if not log:
+            if not self.options.quiet:
+                print("Done!")
+            return
 
         def checkname(filename):
             if not os.path.exists(filename):
@@ -86,15 +87,17 @@ def run():
     ChangelogGenerator(sys.argv[1:]).run()
 
 
-def run_gui():
-    import wx
-    from .gui import GeneratorApp
+# def run_gui():
+#     import wx
+#     from .gui import GeneratorApp
+#
+#
+#     app = GeneratorApp()
+#     wx.MessageBox("Not yet implemented.", os.path.basename(sys.argv[0]))
+#     # win = MainFrame(None).Show()
+#     # app.MainLoop()
+#
 
-
-    app = GeneratorApp()
-    wx.MessageBox("Not yet implemented.", os.path.basename(sys.argv[0]))
-    # win = MainFrame(None).Show()
-    # app.MainLoop()
 
 if __name__ == "__main__":
     run()
