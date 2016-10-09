@@ -1121,16 +1121,17 @@ class Generator(object):
         return filtered
 
     def warn_if_nonmatching_regex(self):
-        print(
-            "WARNING: unable to reject any tag, using regex "
-            "'{0}' in --exclude-tags-regex option.".format(
-                self.options.exclude_tags_regex
+        if not self.options.quiet:
+            print(
+                "WARNING: unable to reject any tag, using regex "
+                "'{0}' in --exclude-tags-regex option.".format(
+                    self.options.exclude_tags_regex
+                )
             )
-        )
 
-    @staticmethod
-    def warn_if_tag_not_found(tag, option):
-        print(
-            "WARNING: can't find tag '{0}' specified with "
-            "--{1} option.".format(tag, option)
-        )
+    def warn_if_tag_not_found(self, tag, option):
+        if not self.options.quiet:
+            print(
+                "WARNING: can't find tag '{0}' specified with "
+                "--{1} option.".format(tag, option)
+            )

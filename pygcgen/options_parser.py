@@ -203,7 +203,7 @@ class OptionsParser(object):
             help="Change log will exclude specified tags."
         )
         parser.add_argument(
-            "--exclude-tags-regex", nargs=1,
+            "--exclude-tags-regex",
             help='Apply a regular expression on tag names so that they can be '
             'excluded, for example: --exclude-tags-regex ".*\+\d{1,}"'
         )
