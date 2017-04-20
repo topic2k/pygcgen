@@ -5,10 +5,11 @@ from __future__ import division, print_function
 import copy
 import datetime
 import re
+import sys
 import threading
-from builtins import object, range, str
+if sys.version_info.major == 3:
+    from builtins import object, range, str
 from collections import OrderedDict
-from typing import Dict, List
 
 import dateutil.tz
 from dateutil.parser import parse as dateutil_parser
@@ -18,7 +19,7 @@ from .pygcgen_exceptions import ChangelogGeneratorError
 from .reader import read_changelog
 
 
-def timestring_to_datetime(timestring: str) -> datetime:
+def timestring_to_datetime(timestring):
     """
     Convert an ISO formated date and time string to a datetime object.
 
@@ -110,7 +111,7 @@ class Generator(object):
                 len(self.tag_times_dict))
             )
 
-    def detect_actual_closed_dates(self, issues: list, kind: str) -> list:
+    def detect_actual_closed_dates(self, issues, kind):
         """
         Find correct closed dates, if issues was closed by commits.
 
@@ -143,7 +144,7 @@ class Generator(object):
             print(".")
         return all_issues
 
-    def find_closed_date_by_commit(self, issue: dict) -> None:
+    def find_closed_date_by_commit(self, issue):
         """
         Fill "actual_date" parameter of specified issue by closed date of
         the commit, if it was closed by commit.
@@ -171,7 +172,7 @@ class Generator(object):
             print("\nWARNING: Issue without 'actual_date':"
                   " #{0} {1}".format(issue["number"], issue["title"]))
 
-    def set_date_from_event(self, event: dict, issue: dict) -> None:
+    def set_date_from_event(self, event, issue):
         """
         Set closed date from this issue.
 
@@ -194,7 +195,7 @@ class Generator(object):
             issue['actual_date'] = timestring_to_datetime(issue['closed_at'])
 
     @staticmethod
-    def encapsulate_string(raw_string: str) -> str:
+    def encapsulate_string(raw_string):
         """
         Encapsulate characters to make markdown look as expected.
 
@@ -207,7 +208,7 @@ class Generator(object):
         enc_string = re.sub("([<>*_()\[\]#])", r"\\\1", raw_string)
         return enc_string
 
-    def compound_changelog(self) -> str:
+    def compound_changelog(self):
         """
         Main function to start change log generation
 
@@ -236,7 +237,7 @@ class Generator(object):
             pass
         return log
 
-    def generate_sub_section(self, issues: list, prefix: str) -> str:
+    def generate_sub_section(self, issues, prefix):
         """
         Generate formated list of issues for changelog.
 
@@ -256,9 +257,9 @@ class Generator(object):
             log += "\n"
         return log
 
-    def generate_header(self, newer_tag_name: str, newer_tag_link: str,
-                        newer_tag_time: datetime,
-                        older_tag_link: str, project_url: str) -> str:
+    def generate_header(self, newer_tag_name, newer_tag_link,
+                        newer_tag_time,
+                        older_tag_link, project_url):
         """
         Generate a header for a tag section with specific parameters.
 
@@ -311,8 +312,7 @@ class Generator(object):
             )
         return log
 
-    def generate_log_between_tags(
-        self, older_tag: dict, newer_tag: dict) -> str:
+    def generate_log_between_tags(self, older_tag, newer_tag):
         """
         Generate log between 2 specified tags.
 
@@ -339,8 +339,7 @@ class Generator(object):
             filtered_pull_requests, filtered_issues,
             newer_tag, older_tag_name)
 
-    def filter_issues_for_tags(self, newer_tag: dict, older_tag: dict) -> (
-        List[dict], List[dict]):
+    def filter_issues_for_tags(self, newer_tag, older_tag):
         """
         Apply all filters to issues and pull requests.
 
@@ -371,7 +370,7 @@ class Generator(object):
             )
         return filtered_issues, filtered_pull_requests
 
-    def generate_log_for_all_tags(self) -> str:
+    def generate_log_for_all_tags(self):
         """
         The full cycle of generation for whole project.
 
@@ -434,7 +433,7 @@ class Generator(object):
                     older_tag_date = tag_date
         return older_tag
 
-    def generate_unreleased_section(self) -> str:
+    def generate_unreleased_section(self):
         """
         Generate log for unreleased closed issues.
 
@@ -451,7 +450,7 @@ class Generator(object):
             self.filtered_tags[0], head_tag)
         return unreleased_log
 
-    def get_string_for_issue(self, issue: dict) -> str:
+    def get_string_for_issue(self, issue):
         """
         Parse issue and generate single line formatted issue line.
 
@@ -478,7 +477,7 @@ class Generator(object):
             print(title_with_number, '\n', issue["html_url"])
         return self.issue_line_with_user(title_with_number, issue)
 
-    def issue_line_with_user(self, line: str, issue: dict) -> str:
+    def issue_line_with_user(self, line, issue):
         """
         If option author is enabled, a link to the profile of the author
         of the pull reqest will be added to the issue line.
@@ -504,10 +503,10 @@ class Generator(object):
         return line
 
     def generate_log_for_tag(self,
-                             pull_requests: List[dict],
-                             issues: List[dict],
-                             newer_tag: dict,
-                             older_tag_name: str) -> str:
+                             pull_requests,
+                             issues,
+                             newer_tag,
+                             older_tag_name):
         """
         Generates log for tag section with header and body.
 
@@ -541,8 +540,7 @@ class Generator(object):
             )
         return log
 
-    def issues_to_log(self, issues: List[dict],
-                      pull_requests: List[dict]) -> str:
+    def issues_to_log(self, issues, pull_requests):
         """
         Generate ready-to-paste log from list of issues and pull requests.
 
@@ -561,10 +559,7 @@ class Generator(object):
         log += self.generate_sub_section(issues_a, self.options.issue_prefix)
         return log
 
-    def parse_by_sections(self,
-                          issues: List[dict],
-                          pull_requests: List[dict]
-                          ) -> (Dict[str, List[dict]], List[dict]):
+    def parse_by_sections(self, issues, pull_requests):
         """
         This method sort issues by types (bugs, features, etc. or
         just closed issues) by labels.
@@ -616,7 +611,7 @@ class Generator(object):
             for pr in added_pull_requests:
                 pull_requests.remove(pr)
 
-    def exclude_issues_by_labels(self, issues: List[dict]) -> List[dict]:
+    def exclude_issues_by_labels(self, issues):
         """
         Delete all issues with labels from exclude-labels option.
 
@@ -640,8 +635,7 @@ class Generator(object):
                 include_issues.append(issue)
         return include_issues
 
-    def filter_by_milestone(self, filtered_issues: List[dict], tag_name: str,
-                            all_issues: List[dict]) -> List[dict]:
+    def filter_by_milestone(self, filtered_issues, tag_name, all_issues):
         """
         :param list(dict) filtered_issues: Filtered issues.
         :param str tag_name: Name (title) of tag.
@@ -658,8 +652,7 @@ class Generator(object):
         return filtered_issues
 
     @staticmethod
-    def find_issues_to_add(all_issues: List[dict],
-                           tag_name: str) -> List[dict]:
+    def find_issues_to_add(all_issues, tag_name):
         """
         Add all issues, that should be in that tag, according to milestone.
 
@@ -677,8 +670,7 @@ class Generator(object):
                     filtered.append(iss)
         return filtered
 
-    def remove_issues_in_milestones(
-        self, filtered_issues: List[dict]) -> List[dict]:
+    def remove_issues_in_milestones(self, filtered_issues):
         """
         :param list(dict) filtered_issues: Filtered issues.
         :rtype: list(dict)
@@ -694,10 +686,7 @@ class Generator(object):
                         filtered_issues.remove(issue)
         return filtered_issues
 
-    def delete_by_time(self,
-                       issues: List[dict],
-                       older_tag: dict,
-                       newer_tag: dict) -> List[dict]:
+    def delete_by_time(self, issues, older_tag, newer_tag):
         """
         Filter issues that belong to specified tag range.
 
@@ -726,7 +715,7 @@ class Generator(object):
                     filtered.append(copy.deepcopy(issue))
         return filtered
 
-    def include_issues_by_labels(self, all_issues: List[dict]) -> List[dict]:
+    def include_issues_by_labels(self, all_issues):
         """
         Include issues with labels, specified in self.options.include_labels.
 
@@ -745,7 +734,7 @@ class Generator(object):
                 filtered_issues.append(issue)
         return filtered_issues
 
-    def filter_wo_labels(self, all_issues: List[dict]) -> List[dict]:
+    def filter_wo_labels(self, all_issues):
         """
         Filter all issues that don't have a label.
 
@@ -760,7 +749,7 @@ class Generator(object):
                     issues_wo_labels.append(issue)
         return issues_wo_labels
 
-    def filter_by_include_labels(self, issues: List[dict]) -> List[dict]:
+    def filter_by_include_labels(self, issues):
         """
         Filter issues to include only issues with labels
         specified in include_labels.
@@ -780,8 +769,7 @@ class Generator(object):
                 filtered_issues.append(issue)
         return filtered_issues
 
-    def filter_by_labels(self, all_issues: List[dict],
-                         kind: str) -> List[dict]:
+    def filter_by_labels(self, all_issues, kind):
         """
         Filter issues for include/exclude labels.
 
@@ -797,8 +785,7 @@ class Generator(object):
             print("\tremaining {}: {}".format(kind, len(filtered)))
         return filtered
 
-    def get_filtered_pull_requests(self,
-                                   pull_requests: List[dict]) -> List[dict]:
+    def get_filtered_pull_requests(self, pull_requests):
         """
         This method fetches missing params for PR and filter them
         by specified options. It include add all PR's with labels
@@ -816,8 +803,7 @@ class Generator(object):
             print("\tremaining pull requests: {}".format(len(pull_requests)))
         return pull_requests
 
-    def filter_merged_pull_requests(self,
-                                    pull_requests: List[dict]) -> List[dict]:
+    def filter_merged_pull_requests(self, pull_requests):
         """
         This method filter only merged PR and fetch missing required
         attributes for pull requests. Using merged date is more correct
@@ -849,7 +835,7 @@ class Generator(object):
                 pulls.remove(pr)
         return pulls
 
-    def fetch_and_filter_tags(self) -> None:
+    def fetch_and_filter_tags(self):
         """
         Fetch and filter tags, fetch dates and sort them in time order.
         """
@@ -858,7 +844,7 @@ class Generator(object):
         self.filtered_tags = self.get_filtered_tags(self.all_tags)
         self.fetch_tags_dates()
 
-    def sort_tags_by_date(self, tags: List[dict]) -> List[dict]:
+    def sort_tags_by_date(self, tags):
         """
         Sort all tags by date.
 
@@ -873,7 +859,7 @@ class Generator(object):
         tags.reverse()
         return tags
 
-    def get_time_of_tag(self, tag: dict) -> datetime:
+    def get_time_of_tag(self, tag):
         """
         Get date and time for tag, fetching it if not already cached.
 
@@ -900,7 +886,7 @@ class Generator(object):
                     timestring_to_datetime(time_string)
             return self.tag_times_dict[name_of_tag]
 
-    def detect_link_tag_time(self, tag: dict) -> (str, str, datetime):
+    def detect_link_tag_time(self, tag):
         """
         Detect link, name and time for specified tag.
 
@@ -927,7 +913,7 @@ class Generator(object):
             newer_tag_link = "HEAD"
         return [newer_tag_link, newer_tag_name, newer_tag_time]
 
-    def detect_since_tag(self) -> str:
+    def detect_since_tag(self):
         """
         Try to find tag name to use as older tag for range of log creation.
 
@@ -937,7 +923,7 @@ class Generator(object):
         """
         return self.options.since_tag or self.version_of_first_item()
 
-    def version_of_first_item(self) -> str:
+    def version_of_first_item(self):
         """
         Try to detect the newest tag from self.options.base, otherwise
         return a special value indicating the creation of the repo.
@@ -952,7 +938,7 @@ class Generator(object):
         except(IOError, TypeError):
             return self.get_temp_tag_for_repo_creation()
 
-    def get_temp_tag_for_repo_creation(self) -> str:
+    def get_temp_tag_for_repo_creation(self):
         """
         If not already cached, fetch the creation date of the repo, cache it
         and return the special value indicating the creation of the repo.
@@ -966,7 +952,7 @@ class Generator(object):
             self.tag_times_dict[tag_name] = timestring_to_datetime(tag_date)
         return REPO_CREATED_TAG_NAME
 
-    def get_filtered_tags(self, all_tags: List[dict]) -> List[dict]:
+    def get_filtered_tags(self, all_tags):
         """
         Return tags after filtering tags in lists provided by
         option: --between-tags & --exclude-tags
@@ -983,7 +969,7 @@ class Generator(object):
             filtered_tags = self.filter_due_tag(filtered_tags)
         return self.filter_excluded_tags(filtered_tags)
 
-    def filter_since_tag(self, all_tags: List[dict]) -> List[dict]:
+    def filter_since_tag(self, all_tags):
         """
         Filter tags according since_tag option.
 
@@ -1012,7 +998,7 @@ class Generator(object):
                 filtered_tags.append(t)
         return filtered_tags
 
-    def filter_due_tag(self, all_tags: List[dict]) -> List[dict]:
+    def filter_due_tag(self, all_tags):
         """
         Filter tags according due_tag option.
 
@@ -1038,7 +1024,7 @@ class Generator(object):
                 filtered_tags.append(t)
         return filtered_tags
 
-    def filter_between_tags(self, all_tags: List[dict]) -> List[dict]:
+    def filter_between_tags(self, all_tags):
         """
         Filter tags according between_tags option.
 
@@ -1075,7 +1061,7 @@ class Generator(object):
             between_tags.pop(0)
         return between_tags
 
-    def filter_excluded_tags(self, all_tags: List[dict]) -> List[dict]:
+    def filter_excluded_tags(self, all_tags):
         """
         Filter tags according exclude_tags and exclude_tags_regex option.
 
@@ -1090,7 +1076,7 @@ class Generator(object):
             filtered_tags = self.apply_exclude_tags_regex(filtered_tags)
         return filtered_tags
 
-    def apply_exclude_tags_regex(self, all_tags: List[dict]) -> List[dict]:
+    def apply_exclude_tags_regex(self, all_tags):
         """
         Filter tags according exclude_tags_regex option.
 
@@ -1106,7 +1092,7 @@ class Generator(object):
             self.warn_if_nonmatching_regex()
         return filtered
 
-    def apply_exclude_tags(self, all_tags: List[dict]) -> List[dict]:
+    def apply_exclude_tags(self, all_tags):
         """
         Filter tags according exclude_tags option.
 

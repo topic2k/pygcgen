@@ -4,9 +4,11 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import re
+import sys
 import subprocess
 import threading
-from builtins import object, range
+if sys.version_info.major == 3:
+    from builtins import object, range
 
 from agithub.GitHub import GitHub
 
@@ -76,7 +78,7 @@ class Fetcher(object):
         if not self.options.token:
             print(NO_TOKEN_PROVIDED)
 
-    def get_all_tags(self) -> list:
+    def get_all_tags(self):
         """
         Fetch all tags for repository from Github.
 
@@ -115,7 +117,7 @@ class Fetcher(object):
             print("Found {} tag(s)".format(len(tags)))
         return tags
 
-    def fetch_closed_issues_and_pr(self) -> (list, list):
+    def fetch_closed_issues_and_pr(self):
         """
         This method fetches all closed issues and separate them to
         pull requests and pure issues (pull request is kind of issue
@@ -168,7 +170,7 @@ class Fetcher(object):
             )
         return iss, prs
 
-    def fetch_closed_pull_requests(self) -> list:
+    def fetch_closed_pull_requests(self):
         """
         Fetch all pull requests. We need them to detect "merged_at" parameter
 
@@ -211,7 +213,7 @@ class Fetcher(object):
             )
         return pull_requests
 
-    def fetch_repo_creation_date(self) -> (str, str):
+    def fetch_repo_creation_date(self):
         """
         Get the creation date of the repository from GitHub.
 
@@ -228,7 +230,7 @@ class Fetcher(object):
             self.raise_GitHubError(rc, data, gh.getheaders())
         return None, None
 
-    def fetch_events_async(self, issues: list, tag_name: str) -> None:
+    def fetch_events_async(self, issues, tag_name):
         """
         Fetch events for all issues and add them to self.events
 
@@ -282,7 +284,7 @@ class Fetcher(object):
         if verbose > 2:
             print(".")
 
-    def fetch_date_of_tag(self, tag: dict) -> str:
+    def fetch_date_of_tag(self, tag):
         """
         Fetch time for tag from repository.
 
@@ -303,7 +305,7 @@ class Fetcher(object):
             return data["committer"]["date"]
         self.raise_GitHubError(rc, data, gh.getheaders())
 
-    def fetch_commit(self, event: dict) -> dict:
+    def fetch_commit(self, event):
         """
         Fetch commit data for specified event.
 
@@ -331,7 +333,7 @@ class Fetcher(object):
         raise GithubApiError("({0}) {1}".format(rc, data["message"]))
 
 
-def NextPage(gh: GitHub) -> int:
+def NextPage(gh):
     """
     Checks if a GitHub call returned multiple pages of data.
 

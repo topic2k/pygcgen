@@ -28,7 +28,9 @@
 #   content = reader.read('./CHANGELOG.md')
 
 import re
-from builtins import map
+import sys
+if sys.version_info.major == 3:
+    from builtins import map
 
 
 def parse_heading(heading):
