@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import re
-from builtins import object
+import sys
+if sys.version_info.major == 3:
+    from builtins import object
 
 
 # Pattern to split list options (respecting quotes)

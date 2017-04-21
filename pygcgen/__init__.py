@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from .__main__ import ChangelogGenerator
+from .main import ChangelogGenerator
 
 __all__ = ["ChangelogGenerator"]

@@ -7,7 +7,8 @@ import os
 import re
 import subprocess
 import sys
-from builtins import object
+if sys.version_info.major == 3:
+    from builtins import object
 from collections import OrderedDict
 
 from .optionsfile_parser import OptionsFileParser

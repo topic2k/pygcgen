@@ -5,7 +5,8 @@ from __future__ import print_function
 import os
 import re
 import sys
-from builtins import object
+if sys.version_info.major == 3:
+    from builtins import object
 
 from .generator import Generator
 from .options_parser import OptionsParser
