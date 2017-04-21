@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ez_setup
-ez_setup.use_setuptools()
-
 from setuptools import setup
-#from setuptools_scm import get_version
-
-
-#git_version = get_version()  # root='..', relative_to=__file__)
 
 version = {}
 with open("pygcgen/version.py") as fh:
@@ -18,15 +11,11 @@ setup(
     version=version['__version__'],
     license=version['__license__'],
 
-    # get the version number from git using setuptools_scm
-    # use_scm_version = True,
-
     keywords=version['__summary__'],
     description='Generate changelog based on tags, issues and '
                 'merged pull requests on GitHub.',
-    long_description="This package started as a conversion from " \
-    "ruby to python of the " \
-    "'GitHub Changelog Generator' " \
+    long_description="This package started as a conversion from "
+    "ruby to python of the 'GitHub Changelog Generator' "
     "(https://github.com/skywinder/github-changelog-generator).",
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -34,7 +23,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Documentation",
     ],
 
@@ -45,7 +34,6 @@ setup(
 
     url=version['__uri__'],
 
-    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive', ],
     install_requires=["agithub", "python-dateutil"],
 
     packages=[version['__title__']],
@@ -62,7 +50,7 @@ setup(
     },
 
     entry_points={
-        'console_scripts': ['pygcgen = pygcgen.__main__:run', ],
-        #'gui_scripts': ['pygcgenw = pygcgen.__main__:run_gui', ],
+        'console_scripts': ['pygcgen = pygcgen.main:run', ],
+        #'gui_scripts': ['pygcgenw = pygcgen.main:run_gui', ],
     },
 )
