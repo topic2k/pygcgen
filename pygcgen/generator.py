@@ -131,13 +131,13 @@ class Generator(object):
                 if not issues.index(issue) % 30:
                     print("")
             self.find_closed_date_by_commit(issue)
+
             if not issue.get('actual_date', False):
-                # TODO: don't remove it ???
-                if not self.options.quiet:
-                    print("HELP ME! is it correct to skip #{0} {1}?".format(
-                        issue["number"], issue["title"])
-                    )
-                issues.remove(issue)
+                if issue.get('closed_at', False):
+                    print("Skipping closed non-merged issue: #{0} {1}".format(
+                        issue["number"], issue["title"]))
+
+                all_issues.remove(issue)
 
         if self.options.verbose > 2:
             print(".")
