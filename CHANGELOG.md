@@ -1,5 +1,20 @@
 # Change Log
 
+# [v0.2.2](https://github.com/topic2k/pygcgen/tree/v0.2.2) (2017-04-21)
+[Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.2.1...v0.2.2)
+
+**Fixed bugs:**
+
+- Skip non-merged closed issues? [\#18](https://github.com/topic2k/pygcgen/pull/18) ([alexanderad](https://github.com/alexanderad))
+
+**Closed issues:**
+
+- Links in unreleased section don't work [\#16](https://github.com/topic2k/pygcgen/issues/16)
+
+**Merged pull requests:**
+
+- changes for using pygcgen with python 2.7 [\#19](https://github.com/topic2k/pygcgen/pull/19) ([topic2k](https://github.com/topic2k))
+
 # [v0.2.1](https://github.com/topic2k/pygcgen/tree/v0.2.1) (2016-10-07)
 [Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.2.0...v0.2.1)
 
