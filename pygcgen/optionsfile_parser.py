@@ -12,7 +12,7 @@ regex = re.compile(
 )
 
 FILENAME = ".pygcgen"
-KNOWN_INTEGER_KEYS = ["max_issues"]
+KNOWN_INTEGER_KEYS = ["max_issues", "max_simultaneous_requests"]
 KNOWN_ARRAY_KEYS = [
     "between_tags",
     "exclude_labels",

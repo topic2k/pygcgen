@@ -24,6 +24,7 @@ DEFAULT_OPTIONS = {
     "header": "# Change Log",
     "issue_prefix": "**Closed issues:**",
     "max_issues": sys.maxsize,
+    "max_simultaneous_requests": 10,
     "merge_prefix": "**Merged pull requests:**",
     "options_file": ".pygcgen",
     "output": "CHANGELOG.md",
@@ -275,6 +276,14 @@ class OptionsParser(object):
                  "https://github.com/topic2k/pygcgen/issues and add a "
                  "new issue. \nAdd this information to your issue discription."
         )
+        parser.add_argument(
+            "--max-simultaneous-requests", metavar="NUMBER",
+            type=int, default=DEFAULT_OPTIONS["max_simultaneous_requests"],
+            help=
+            "Max number of events to fetch simultaneous from GitHub. "
+            "Default is %d." % DEFAULT_OPTIONS["max_simultaneous_requests"]
+        )
+
         opts = parser.parse_args(options)
 
         if os.path.exists(opts.options_file):
