@@ -17,7 +17,6 @@ from .pygcgen_exceptions import GithubApiError
 
 GH_CFG_VARS = ["github.pygcgen.token", "github.token"]
 PER_PAGE_NUMBER = 100
-MAX_SIMULTANEOUS_REQUESTS = 25
 CHANGELOG_GITHUB_TOKEN = "CHANGELOG_GITHUB_TOKEN"
 GH_RATE_LIMIT_EXCEEDED_MSG = \
     "GitHub API rate limit exceeded, change log may be missing some issues. " \
@@ -241,6 +240,8 @@ class Fetcher(object):
 
         if not issues:
             return issues
+
+        max_simultaneous_requests = self.options.max_simultaneous_requests
         verbose = self.options.verbose
         gh = self.github
         user = self.options.user
@@ -267,9 +268,9 @@ class Fetcher(object):
 
         threads = []
         cnt = len(issues)
-        for i in range(0, (cnt // MAX_SIMULTANEOUS_REQUESTS) + 1):
-            for j in range(MAX_SIMULTANEOUS_REQUESTS):
-                idx = i * MAX_SIMULTANEOUS_REQUESTS + j
+        for i in range(0, (cnt // max_simultaneous_requests) + 1):
+            for j in range(max_simultaneous_requests):
+                idx = i * max_simultaneous_requests + j
                 if idx == cnt:
                     break
                 t = threading.Thread(target=worker, args=(issues[idx],))
