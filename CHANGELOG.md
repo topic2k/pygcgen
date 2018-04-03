@@ -5,7 +5,7 @@
 
 **Implemented enhancements:**
 
-- Add an option to set the maximum allowed simultaneous threads … [\#24](https://github.com/topic2k/pygcgen/pull/24) ([topic2k](https://github.com/topic2k))
+- Add an option to set the maximum allowed simultaneous threads â€¦ [\#24](https://github.com/topic2k/pygcgen/pull/24) ([topic2k](https://github.com/topic2k))
 
 **Merged pull requests:**
 
