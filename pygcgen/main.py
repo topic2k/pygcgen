@@ -2,15 +2,18 @@
 
 from __future__ import print_function
 
+import codecs
 import os
 import re
 import sys
-if sys.version_info.major == 3:
-    from builtins import object
 
 from .generator import Generator
 from .options_parser import OptionsParser
 from .pygcgen_exceptions import ChangelogGeneratorError
+
+if sys.version_info.major == 3:
+    # noinspection PyCompatibility
+    from builtins import object
 
 
 def checkname(filename):
@@ -75,11 +78,9 @@ class ChangelogGenerator(object):
         else:
             out = self.options.output
 
-        with open(out, "w") as fh:
-            try:
-                fh.write(log.encode("utf8"))
-            except TypeError:
-                fh.write(log)
+        with codecs.open(out, "w", "utf-8") as fh:
+            fh.write(log)
+
         if not self.options.quiet:
             print("Done!")
             print("Generated changelog written to {}".format(out))

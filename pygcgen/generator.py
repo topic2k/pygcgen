@@ -7,8 +7,8 @@ import datetime
 import re
 import sys
 import threading
-if sys.version_info.major == 3:
-    from builtins import object, range, str
+import warnings
+
 from collections import OrderedDict
 
 import dateutil.tz
@@ -17,6 +17,10 @@ from dateutil.parser import parse as dateutil_parser
 from .fetcher import Fetcher, REPO_CREATED_TAG_NAME
 from .pygcgen_exceptions import ChangelogGeneratorError
 from .reader import read_changelog
+
+if sys.version_info.major == 3:
+    # noinspection PyCompatibility
+    from builtins import object, range, str
 
 
 def timestring_to_datetime(timestring):
@@ -27,7 +31,10 @@ def timestring_to_datetime(timestring):
     :rtype: datetime
     :return: datetime object
     """
-    result = dateutil_parser(str(timestring))
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UnicodeWarning)
+        result = dateutil_parser(timestring)
+
     return result
 
 
@@ -82,7 +89,9 @@ class Generator(object):
         """ Async fetching of all tags dates. """
 
         if self.options.verbose:
-            print("Fetching dates for {} tags...".format(len(self.filtered_tags)))
+            print(
+                "Fetching dates for {} tags...".format(len(self.filtered_tags))
+            )
 
         def worker(tag):
             self.get_time_of_tag(tag)
