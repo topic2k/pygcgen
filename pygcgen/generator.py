@@ -27,7 +27,10 @@ def timestring_to_datetime(timestring):
     :rtype: datetime
     :return: datetime object
     """
-    result = dateutil_parser(str(timestring))
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UnicodeWarning)
+        result = dateutil_parser(timestring)
+
     return result
 
 
