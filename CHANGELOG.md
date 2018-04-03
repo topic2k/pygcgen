@@ -1,5 +1,17 @@
 # Change Log
 
+# [v0.2.3](https://github.com/topic2k/pygcgen/tree/v0.2.3) (2018-04-03)
+[Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.2.2...v0.2.3)
+
+**Implemented enhancements:**
+
+- Add an option to set the maximum allowed simultaneous threads … [\#24](https://github.com/topic2k/pygcgen/pull/24) ([topic2k](https://github.com/topic2k))
+
+**Merged pull requests:**
+
+- Initial Update [\#21](https://github.com/topic2k/pygcgen/pull/21) ([pyup-bot](https://github.com/pyup-bot))
+- Config file for pyup.io [\#20](https://github.com/topic2k/pygcgen/pull/20) ([pyup-bot](https://github.com/pyup-bot))
+
 # [v0.2.2](https://github.com/topic2k/pygcgen/tree/v0.2.2) (2017-04-21)
 [Full Changelog](https://github.com/topic2k/pygcgen/compare/v0.2.1...v0.2.2)
 
@@ -61,7 +73,7 @@
 - Add option to keep output file if it exists [\#5](https://github.com/topic2k/pygcgen/pull/5) ([topic2k](https://github.com/topic2k))
 - Prepare for releasing on PyPi. [\#4](https://github.com/topic2k/pygcgen/pull/4) ([topic2k](https://github.com/topic2k))
 
-# [v0.1.0](https://github.com/topic2k/pygcgen/tree/v0.1.0) (2016-09-11)
+# [0.1.0](https://github.com/topic2k/pygcgen/tree/0.1.0) (2016-09-11)
 **Implemented enhancements:**
 
 - Add option to use GitHub tags instead of markdown links [\#3](https://github.com/topic2k/pygcgen/pull/3) ([topic2k](https://github.com/topic2k))
