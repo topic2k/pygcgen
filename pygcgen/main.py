@@ -6,12 +6,14 @@ import codecs
 import os
 import re
 import sys
-if sys.version_info.major == 3:
-    from builtins import object
 
 from .generator import Generator
 from .options_parser import OptionsParser
 from .pygcgen_exceptions import ChangelogGeneratorError
+
+if sys.version_info.major == 3:
+    # noinspection PyCompatibility
+    from builtins import object
 
 
 def checkname(filename):
