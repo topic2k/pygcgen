@@ -10,7 +10,7 @@ with open("pygcgen/version.py") as fh:
 changelog = pypandoc.convert_file(
     r'CHANGELOG.md',
     to='rst',
-    format='gfm',
+    format='markdown_github',
 )
 
 long_desc = """
