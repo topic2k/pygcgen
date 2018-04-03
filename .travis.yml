@@ -10,6 +10,8 @@ install:
   - pip install coverage
   - pip install codeclimate-test-reporter
   - pip install -r requirements.txt
+  - pip install pypandoc
+  - python -m pypandoc.download_pandoc()
   - python setup.py install
 
 script:
