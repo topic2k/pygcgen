@@ -1,10 +1,31 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+import pypandoc
 
 version = {}
 with open("pygcgen/version.py") as fh:
     exec(fh.read(), version)
+
+changelog = pypandoc.convert_file(
+    r'CHANGELOG.md',
+    to='rst',
+    format='gfm',
+)
+
+long_desc = """
+Automaticaly generate a changelog based on GitHub issues and pull requests.
+For each tag there will be a section with closed issues and merged
+pull requests. Also there can be user defined sections based on labels.
+
+
+This package started as a conversion from ruby to python of the
+`GitHub Changelog Generator 
+<https://github.com/skywinder/github-changelog-generator>`__
+
+
+""" + changelog
+
 
 setup(
     name=version['__title__'],
@@ -14,9 +35,7 @@ setup(
     keywords=version['__summary__'],
     description='Generate changelog based on tags, issues and '
                 'merged pull requests on GitHub.',
-    long_description="This package started as a conversion from "
-    "ruby to python of the 'GitHub Changelog Generator' "
-    "(https://github.com/skywinder/github-changelog-generator).",
+    long_description=long_desc,
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
@@ -52,6 +71,6 @@ setup(
 
     entry_points={
         'console_scripts': ['pygcgen = pygcgen.main:run', ],
-        #'gui_scripts': ['pygcgenw = pygcgen.main:run_gui', ],
+        # 'gui_scripts': ['pygcgenw = pygcgen.main:run_gui', ],
     },
 )
