@@ -70,7 +70,7 @@ class Fetcher(object):
                         cmd, stdout=subprocess.PIPE).communicate()[0].strip()
                     if self.options.token:
                         break
-            except subprocess.CalledProcessError:
+            except (subprocess.CalledProcessError, WindowsError):
                 pass
         if not self.options.token:
             self.options.token = os.environ.get(CHANGELOG_GITHUB_TOKEN)
