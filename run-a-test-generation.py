@@ -36,6 +36,7 @@ else:
     tests = [
         [  # Test #01
             "--no-overwrite",
+            "--max-simultaneous-requests", "25",
             "--section", '**Important changes:**', 'notice',
             "--since-tag", "v0.1.0",
             "--between-tags", "v0.1.1", "v0.2.1",
