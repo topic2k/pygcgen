@@ -298,10 +298,10 @@ class Generator(object):
 
         if not self.options.unreleased_with_date and \
                 newer_tag_name == self.options.unreleased_label:
-            log += u"# [{newer_tag_name}]({release_url})\n\n".format(
+            log += u"## [{newer_tag_name}]({release_url})\n\n".format(
                 newer_tag_name=newer_tag_name, release_url=release_url)
         else:
-            log += u"# [{newer_tag_name}]({release_url}) " \
+            log += u"## [{newer_tag_name}]({release_url}) " \
                    u"({time_string})\n".format(
                         newer_tag_name=newer_tag_name,
                         release_url=release_url,
