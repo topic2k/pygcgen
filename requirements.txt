@@ -1,2 +1,2 @@
-python-dateutil==2.8.1
+python-dateutil==2.8.2
 agithub==2.2.2
